@@ -1,0 +1,39 @@
+export type Translations = {
+  lang: {
+    title: string
+    subtitle: string
+    it: string
+    fr: string
+  }
+  auth: {
+    login: {
+      title: string; subtitle: string; emailLabel: string; emailPlaceholder: string
+      errorGeneric: string; buttonLoading: string; buttonCta: string; noPassword: string
+      checkEmailTitle: string; checkEmailBody: string; checkEmailInstruction: string; checkEmailBack: string
+      orDivider: string; googleCta: string
+    }
+    confirm: { loading: string }
+  }
+  onboarding: {
+    title: string; subtitle: string; intro: string; nameLabel: string; namePlaceholder: string
+    langLabel: string; notifLabel: string; notifMorning: string; notifEvening: string
+    notifNote: string; errorGeneric: string; buttonLoading: string; buttonCta: string
+  }
+  dashboard: {
+    nav: { home: string; archive: string; profile: string; pro: string }
+    home: { greetingMorning: string; greetingEvening: string; emptyState: string; proPromo: string }
+    mood: {
+      question: string; confirmed: string
+      options: { very_low: string; low: string; neutral: string; good: string; great: string }
+    }
+    content: { tipLabel: string }
+    pro: {
+      planLabel: string; title: string; statusLabel: string; statusActive: string; statusActiveDesc: string
+      toggleMonthly: string; toggleAnnual: string; savingsBadge: string
+      priceMonthly: string; priceMonthlyNote: string; priceAnnual: string; priceAnnualNote: string
+      feature1: string; feature2: string; feature3: string
+      buttonLoading: string; buttonMonthly: string; buttonAnnual: string; cancelNote: string
+      successWelcome: string; successTitle: string; successBody: string; successNote: string; successCta: string
+    }
+  }
+}

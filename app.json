@@ -1,0 +1,41 @@
+{
+  "expo": {
+    "name": "Sobre",
+    "slug": "sobre-native",
+    "scheme": "sobre",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "backgroundColor": "#fafaf9"
+    },
+    "assetBundlePatterns": ["**/*"],
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.lepefylabs.sobre"
+    },
+    "android": {
+      "package": "com.lepefylabs.sobre",
+      "adaptiveIcon": {
+        "backgroundColor": "#fafaf9"
+      }
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/notification-icon.png",
+          "color": "#292524"
+        }
+      ]
+    ],
+    "extra": {
+      "router": {
+        "origin": false
+      }
+    }
+  }
+}
