@@ -22,7 +22,12 @@
       }
     },
     "plugins": [
-      "expo-router",
+      [
+        "expo-router",
+        {
+          "scheme": "sobre"
+        }
+      ],
       "expo-secure-store",
       [
         "expo-notifications",
