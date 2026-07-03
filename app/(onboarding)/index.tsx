@@ -1,19 +1,25 @@
 import { useEffect, useState } from 'react'
-import { View, StyleSheet, Platform } from 'react-native'
+import { View, StyleSheet, Platform, ScrollView, Pressable } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
-import DateTimePicker from '@react-native-community/datetimepicker'
+import DateTimePicker, { DateTimePickerAndroid } from '@react-native-community/datetimepicker'
 import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 import { TextInput } from '@/components/ui/TextInput'
 import { getT, getLangFromStorage, setLangInStorage } from '@/lib/i18n'
 import { supabase } from '@/lib/supabase'
+import { registerForPushNotificationsAsync } from '@/lib/notifications'
 import { useAuthContext } from '../_layout'
-import { colors, spacing } from '@/constants/theme'
+import { colors, spacing, radius, fontSize } from '@/constants/theme'
 import type { Translations } from '@/lib/i18n/types'
 import type { ContentLang } from '@/types/database'
 
 function toTimeString(date: Date): string {
-  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:00`
+  return `${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}`
+}
+
+function formatTime(date: Date): string {
+  return toTimeString(date)
 }
 
 export default function OnboardingScreen() {
@@ -41,12 +47,25 @@ export default function OnboardingScreen() {
     await setLangInStorage(newLang)
   }
 
+  function openTimePicker(current: Date, onChange: (date: Date) => void) {
+    if (Platform.OS === 'android') {
+      DateTimePickerAndroid.open({
+        value: current,
+        mode: 'time',
+        is24Hour: true,
+        onChange: (_, date) => date && onChange(date),
+      })
+      return
+    }
+    // TODO: iOS time picker
+  }
+
   async function handleSubmit() {
     if (!user) return
     setError(null)
     setLoading(true)
 
-    const { error } = await supabase
+    const { error: updateError } = await supabase
       .from('profiles')
       .update({
         name: name.trim() || null,
@@ -57,89 +76,114 @@ export default function OnboardingScreen() {
       })
       .eq('id', user.id)
 
-    setLoading(false)
-    if (error) {
+    if (updateError) {
+      setLoading(false)
       setError(t.onboarding.errorGeneric)
       return
     }
+
+    await setLangInStorage(lang)
+    await registerForPushNotificationsAsync(user.id)
+
+    setLoading(false)
     router.replace('/(app)/home')
   }
 
   return (
     <View style={styles.container}>
-      <Text variant="heading" style={styles.title}>
-        {t.onboarding.title}
-      </Text>
-      <Text variant="body" color={colors.stone500} style={styles.subtitle}>
-        {t.onboarding.subtitle}
-      </Text>
-
-      <Text variant="label" style={styles.label}>
-        {t.onboarding.nameLabel}
-      </Text>
-      <TextInput
-        value={name}
-        onChangeText={setName}
-        placeholder={t.onboarding.namePlaceholder}
-        style={styles.input}
-      />
-
-      <Text variant="label" style={styles.label}>
-        {t.onboarding.langLabel}
-      </Text>
-      <View style={styles.langRow}>
-        <Button
-          label={t.lang.it}
-          onPress={() => selectLang('it')}
-          variant={lang === 'it' ? 'primary' : 'secondary'}
-        />
-        <Button
-          label={t.lang.fr}
-          onPress={() => selectLang('fr')}
-          variant={lang === 'fr' ? 'primary' : 'secondary'}
-        />
-      </View>
-
-      <Text variant="label" style={styles.label}>
-        {t.onboarding.notifLabel}
-      </Text>
-      <View style={styles.timeRow}>
-        <View style={styles.timeCol}>
-          <Text variant="caption">{t.onboarding.notifMorning}</Text>
-          <DateTimePicker
-            value={morningTime}
-            mode="time"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={(_, date) => date && setMorningTime(date)}
-          />
-        </View>
-        <View style={styles.timeCol}>
-          <Text variant="caption">{t.onboarding.notifEvening}</Text>
-          <DateTimePicker
-            value={eveningTime}
-            mode="time"
-            display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-            onChange={(_, date) => date && setEveningTime(date)}
-          />
-        </View>
-      </View>
-      <Text variant="caption" color={colors.stone400} style={styles.notifNote}>
-        {t.onboarding.notifNote}
-      </Text>
-
-      {error && (
-        <Text variant="caption" color={colors.red500} style={styles.error}>
-          {error}
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+      >
+        <Text variant="heading" style={styles.title}>
+          {t.onboarding.title}
         </Text>
-      )}
+        <Text variant="body" color={colors.stone500} style={styles.subtitle}>
+          {t.onboarding.subtitle}
+        </Text>
 
-      <View style={styles.footer}>
+        <Text variant="caption" color={colors.stone500} style={styles.label}>
+          {t.onboarding.nameLabel}
+        </Text>
+        <TextInput
+          value={name}
+          onChangeText={setName}
+          placeholder={t.onboarding.namePlaceholder}
+          style={styles.input}
+        />
+
+        <Text variant="caption" color={colors.stone500} style={styles.label}>
+          {t.onboarding.langLabel}
+        </Text>
+        <View style={styles.langRow}>
+          <Button
+            label={t.lang.it}
+            onPress={() => selectLang('it')}
+            variant={lang === 'it' ? 'primary' : 'secondary'}
+          />
+          <Button
+            label={t.lang.fr}
+            onPress={() => selectLang('fr')}
+            variant={lang === 'fr' ? 'primary' : 'secondary'}
+          />
+        </View>
+
+        <Text variant="caption" color={colors.stone500} style={styles.label}>
+          {t.onboarding.notifLabel}
+        </Text>
+        <View style={styles.timeRow}>
+          <Text variant="body">{t.onboarding.notifMorning}</Text>
+          <Pressable
+            style={styles.timeButton}
+            onPress={() => openTimePicker(morningTime, setMorningTime)}
+          >
+            <Text style={styles.timeButtonText}>{formatTime(morningTime)}</Text>
+          </Pressable>
+        </View>
+        <View style={styles.timeRow}>
+          <Text variant="body">{t.onboarding.notifEvening}</Text>
+          <Pressable
+            style={styles.timeButton}
+            onPress={() => openTimePicker(eveningTime, setEveningTime)}
+          >
+            <Text style={styles.timeButtonText}>{formatTime(eveningTime)}</Text>
+          </Pressable>
+        </View>
+        {Platform.OS === 'ios' && (
+          <View style={styles.iosPickers}>
+            <DateTimePicker
+              value={morningTime}
+              mode="time"
+              display="spinner"
+              onChange={(_, date) => date && setMorningTime(date)}
+            />
+            <DateTimePicker
+              value={eveningTime}
+              mode="time"
+              display="spinner"
+              onChange={(_, date) => date && setEveningTime(date)}
+            />
+          </View>
+        )}
+        <Text variant="caption" color={colors.stone400} style={styles.notifNote}>
+          {t.onboarding.notifNote}
+        </Text>
+
+        {error && (
+          <Text variant="caption" color={colors.red500} style={styles.error}>
+            {error}
+          </Text>
+        )}
+      </ScrollView>
+
+      <SafeAreaView edges={['bottom']} style={styles.footer}>
         <Button
           label={loading ? t.onboarding.buttonLoading : t.onboarding.buttonCta}
           onPress={handleSubmit}
+          disabled={loading}
           loading={loading}
         />
-      </View>
+      </SafeAreaView>
     </View>
   )
 }
@@ -148,8 +192,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.stone50,
+  },
+  scrollContent: {
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.xxl,
+    paddingBottom: spacing.xxl * 2,
   },
   title: {
     marginBottom: spacing.sm,
@@ -170,10 +217,23 @@ const styles = StyleSheet.create({
   },
   timeRow: {
     flexDirection: 'row',
-    gap: spacing.lg,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: spacing.sm,
   },
-  timeCol: {
-    flex: 1,
+  timeButton: {
+    borderWidth: 1,
+    borderColor: colors.stone200,
+    borderRadius: radius.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.md,
+  },
+  timeButtonText: {
+    fontSize: fontSize.base,
+    color: colors.stone800,
+  },
+  iosPickers: {
+    marginTop: spacing.sm,
   },
   notifNote: {
     marginTop: spacing.sm,
@@ -182,7 +242,12 @@ const styles = StyleSheet.create({
     marginTop: spacing.md,
   },
   footer: {
-    marginTop: 'auto',
-    paddingBottom: spacing.xl,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(250,250,249,0.95)',
+    paddingHorizontal: spacing.xl,
+    paddingTop: spacing.md,
   },
 })

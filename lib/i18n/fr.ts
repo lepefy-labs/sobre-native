@@ -27,8 +27,8 @@ export const fr: Translations = {
     confirm: { loading: 'Connexion en cours…' },
   },
   onboarding: {
-    title: 'Sobre',
-    subtitle: 'Ton espace de réflexion quotidienne',
+    title: 'Salut 👋',
+    subtitle: 'Quelques secondes pour commencer.',
     intro: 'Quelques secondes pour commencer.',
     nameLabel: "Comment tu t'appelles ?",
     namePlaceholder: 'Ton prénom',

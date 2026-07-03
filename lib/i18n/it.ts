@@ -27,8 +27,8 @@ export const it: Translations = {
     confirm: { loading: 'Accesso in corso…' },
   },
   onboarding: {
-    title: 'Sobre',
-    subtitle: 'Il tuo spazio di riflessione quotidiana',
+    title: 'Ciao 👋',
+    subtitle: 'Pochi secondi per iniziare.',
     intro: 'Pochi secondi per iniziare.',
     nameLabel: 'Come ti chiami?',
     namePlaceholder: 'Il tuo nome',
