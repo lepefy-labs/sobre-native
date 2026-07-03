@@ -36,4 +36,16 @@ export type Translations = {
       successWelcome: string; successTitle: string; successBody: string; successNote: string; successCta: string
     }
   }
+  profile: {
+    sectionAccount: string; sectionNotifications: string; sectionSubscription: string; sectionOther: string
+    nameLabel: string; nameSave: string; emailLabel: string; langLabel: string
+    morningLabel: string; eveningLabel: string
+    subscriptionFree: string; subscriptionPro: string; subscriptionRenewal: string
+    upgradeMonthly: string; upgradeYearly: string; manageSubscription: string
+    privacy: string; terms: string; logout: string; logoutConfirm: string; logoutCancel: string
+  }
+  payment: {
+    successTitle: string; successSubtitle: string; successCta: string
+    cancelTitle: string; cancelSubtitle: string; cancelCta: string
+  }
 }
