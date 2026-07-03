@@ -32,7 +32,7 @@
     "@react-native-community/datetimepicker": "8.0.1",
     "@supabase/supabase-js": "^2.43.4",
     "@tanstack/react-query": "^5.40.0",
-    "nativewind": "^4.0.36",
+    "nativewind": "4.0.36",
     "react-native-url-polyfill": "^2.0.0"
   },
   "devDependencies": {
