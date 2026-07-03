@@ -19,7 +19,8 @@
       "package": "com.lepefylabs.sobre",
       "adaptiveIcon": {
         "backgroundColor": "#fafaf9"
-      }
+      },
+      "targetSdkVersion": 35
     },
     "plugins": [
       "expo-router",
