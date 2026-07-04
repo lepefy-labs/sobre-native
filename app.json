@@ -19,8 +19,7 @@
       "package": "com.lepefylabs.sobre",
       "adaptiveIcon": {
         "backgroundColor": "#fafaf9"
-      },
-      "targetSdkVersion": 35
+      }
     },
     "plugins": [
       "expo-router",
@@ -30,6 +29,16 @@
         {
           "icon": "./assets/images/notification-icon.png",
           "color": "#292524"
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 35,
+            "targetSdkVersion": 35,
+            "buildToolsVersion": "35.0.0"
+          }
         }
       ],
       "./plugins/withAndroidSigning.js"
