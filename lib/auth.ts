@@ -4,11 +4,19 @@ import { supabase } from './supabase'
 
 WebBrowser.maybeCompleteAuthSession()
 
-export async function signInWithMagicLink(email: string): Promise<{ error: string | null }> {
-  const redirectTo = AuthSession.makeRedirectUri({ scheme: 'sobre', path: 'auth/callback' })
+export async function signInWithOtp(email: string): Promise<{ error: string | null }> {
   const { error } = await supabase.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: redirectTo },
+    options: { shouldCreateUser: true },
+  })
+  return { error: error?.message ?? null }
+}
+
+export async function verifyOtp(email: string, token: string): Promise<{ error: string | null }> {
+  const { error } = await supabase.auth.verifyOtp({
+    email,
+    token,
+    type: 'email',
   })
   return { error: error?.message ?? null }
 }

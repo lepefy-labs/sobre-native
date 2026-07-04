@@ -5,7 +5,7 @@ import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 import { TextInput } from '@/components/ui/TextInput'
 import { getT, getLangFromStorage } from '@/lib/i18n'
-import { signInWithMagicLink, signInWithGoogle } from '@/lib/auth'
+import { signInWithOtp, signInWithGoogle } from '@/lib/auth'
 import { useTheme } from '@/hooks/useTheme'
 import { spacing } from '@/constants/theme'
 import type { Translations } from '@/lib/i18n/types'
@@ -23,10 +23,10 @@ export default function LoginScreen() {
     getLangFromStorage().then((lang) => setT(getT(lang ?? 'it')))
   }, [])
 
-  async function handleMagicLink() {
+  async function handleOtp() {
     setError(null)
     setLoading(true)
-    const { error } = await signInWithMagicLink(email.trim())
+    const { error } = await signInWithOtp(email.trim())
     setLoading(false)
     if (error) {
       setError(t.auth.login.errorGeneric)
@@ -73,7 +73,7 @@ export default function LoginScreen() {
 
       <Button
         label={loading ? t.auth.login.buttonLoading : t.auth.login.buttonCta}
-        onPress={handleMagicLink}
+        onPress={handleOtp}
         loading={loading}
         disabled={!email.trim()}
       />

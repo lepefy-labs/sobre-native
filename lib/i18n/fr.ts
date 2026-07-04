@@ -25,6 +25,17 @@ export const fr: Translations = {
       googleCta: 'Se connecter avec Google',
     },
     confirm: { loading: 'Connexion en cours…' },
+    verify: {
+      title: 'Vérifie ton email',
+      subtitle: 'Nous avons envoyé un code à',
+      codePlaceholder: '000000',
+      buttonCta: 'Vérifier →',
+      buttonLoading: 'Vérification...',
+      resend: 'Renvoyer le code',
+      resendConfirm: 'Code envoyé ✓',
+      changeEmail: 'Utiliser un autre email',
+      errorInvalid: 'Code invalide ou expiré. Réessaie.',
+    },
   },
   onboarding: {
     title: 'Salut 👋',
