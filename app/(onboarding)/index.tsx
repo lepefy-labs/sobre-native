@@ -10,7 +10,8 @@ import { getT, getLangFromStorage, setLangInStorage } from '@/lib/i18n'
 import { supabase } from '@/lib/supabase'
 import { registerForPushNotificationsAsync } from '@/lib/notifications'
 import { useAuthContext } from '../_layout'
-import { colors, spacing, radius, fontSize } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
+import { spacing, radius, fontSize } from '@/constants/theme'
 import type { Translations } from '@/lib/i18n/types'
 import type { ContentLang } from '@/types/database'
 
@@ -24,6 +25,7 @@ function formatTime(date: Date): string {
 
 export default function OnboardingScreen() {
   const router = useRouter()
+  const theme = useTheme()
   const { user } = useAuthContext()
   const [t, setT] = useState<Translations>(getT('it'))
   const [lang, setLang] = useState<ContentLang>('it')
@@ -90,7 +92,7 @@ export default function OnboardingScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
@@ -98,11 +100,11 @@ export default function OnboardingScreen() {
         <Text variant="heading" style={styles.title}>
           {t.onboarding.title}
         </Text>
-        <Text variant="body" color={colors.stone500} style={styles.subtitle}>
+        <Text variant="body" color={theme.textMuted} style={styles.subtitle}>
           {t.onboarding.subtitle}
         </Text>
 
-        <Text variant="caption" color={colors.stone500} style={styles.label}>
+        <Text variant="caption" color={theme.textMuted} style={styles.label}>
           {t.onboarding.nameLabel}
         </Text>
         <TextInput
@@ -112,7 +114,7 @@ export default function OnboardingScreen() {
           style={styles.input}
         />
 
-        <Text variant="caption" color={colors.stone500} style={styles.label}>
+        <Text variant="caption" color={theme.textMuted} style={styles.label}>
           {t.onboarding.langLabel}
         </Text>
         <View style={styles.langRow}>
@@ -128,25 +130,25 @@ export default function OnboardingScreen() {
           />
         </View>
 
-        <Text variant="caption" color={colors.stone500} style={styles.label}>
+        <Text variant="caption" color={theme.textMuted} style={styles.label}>
           {t.onboarding.notifLabel}
         </Text>
         <View style={styles.timeRow}>
           <Text variant="body">{t.onboarding.notifMorning}</Text>
           <Pressable
-            style={styles.timeButton}
+            style={[styles.timeButton, { borderColor: theme.border }]}
             onPress={() => openTimePicker(morningTime, setMorningTime)}
           >
-            <Text style={styles.timeButtonText}>{formatTime(morningTime)}</Text>
+            <Text style={[styles.timeButtonText, { color: theme.text }]}>{formatTime(morningTime)}</Text>
           </Pressable>
         </View>
         <View style={styles.timeRow}>
           <Text variant="body">{t.onboarding.notifEvening}</Text>
           <Pressable
-            style={styles.timeButton}
+            style={[styles.timeButton, { borderColor: theme.border }]}
             onPress={() => openTimePicker(eveningTime, setEveningTime)}
           >
-            <Text style={styles.timeButtonText}>{formatTime(eveningTime)}</Text>
+            <Text style={[styles.timeButtonText, { color: theme.text }]}>{formatTime(eveningTime)}</Text>
           </Pressable>
         </View>
         {Platform.OS === 'ios' && (
@@ -165,18 +167,18 @@ export default function OnboardingScreen() {
             />
           </View>
         )}
-        <Text variant="caption" color={colors.stone400} style={styles.notifNote}>
+        <Text variant="caption" color={theme.textFaint} style={styles.notifNote}>
           {t.onboarding.notifNote}
         </Text>
 
         {error && (
-          <Text variant="caption" color={colors.red500} style={styles.error}>
+          <Text variant="caption" color={theme.danger} style={styles.error} accessibilityRole="alert">
             {error}
           </Text>
         )}
       </ScrollView>
 
-      <SafeAreaView edges={['bottom']} style={styles.footer}>
+      <SafeAreaView edges={['bottom']} style={[styles.footer, { backgroundColor: theme.bg }]}>
         <Button
           label={loading ? t.onboarding.buttonLoading : t.onboarding.buttonCta}
           onPress={handleSubmit}
@@ -191,7 +193,6 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.stone50,
   },
   scrollContent: {
     paddingHorizontal: spacing.xl,
@@ -223,14 +224,12 @@ const styles = StyleSheet.create({
   },
   timeButton: {
     borderWidth: 1,
-    borderColor: colors.stone200,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
   timeButtonText: {
     fontSize: fontSize.base,
-    color: colors.stone800,
   },
   iosPickers: {
     marginTop: spacing.sm,
@@ -246,7 +245,6 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(250,250,249,0.95)',
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.md,
   },

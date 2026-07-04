@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Tabs } from 'expo-router'
 import { Text } from 'react-native'
 import { getT, getLangFromStorage } from '@/lib/i18n'
-import { colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 import type { Translations } from '@/lib/i18n/types'
 
 function TabIcon({ symbol, color }: { symbol: string; color: string }) {
@@ -11,6 +11,7 @@ function TabIcon({ symbol, color }: { symbol: string; color: string }) {
 
 export default function AppLayout() {
   const [t, setT] = useState<Translations>(getT('it'))
+  const theme = useTheme()
 
   useEffect(() => {
     getLangFromStorage().then((lang) => setT(getT(lang ?? 'it')))
@@ -20,11 +21,11 @@ export default function AppLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: colors.stone800,
-        tabBarInactiveTintColor: colors.stone400,
+        tabBarActiveTintColor: theme.text,
+        tabBarInactiveTintColor: theme.textFaint,
         tabBarStyle: {
-          backgroundColor: colors.white,
-          borderTopColor: colors.stone100,
+          backgroundColor: theme.surface,
+          borderTopColor: theme.borderSubtle,
         },
       }}
     >

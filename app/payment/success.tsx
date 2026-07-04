@@ -5,11 +5,13 @@ import { useQueryClient } from '@tanstack/react-query'
 import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 import { getT, getLangFromStorage } from '@/lib/i18n'
-import { colors, spacing } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
+import { spacing } from '@/constants/theme'
 import type { Translations } from '@/lib/i18n/types'
 
 export default function PaymentSuccessScreen() {
   const router = useRouter()
+  const theme = useTheme()
   const queryClient = useQueryClient()
   const [t, setT] = useState<Translations>(getT('it'))
 
@@ -19,12 +21,12 @@ export default function PaymentSuccessScreen() {
   }, [queryClient])
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <Text style={styles.emoji}>✨</Text>
       <Text variant="heading" style={styles.title}>
         {t.payment.successTitle}
       </Text>
-      <Text variant="body" color={colors.stone500} style={styles.subtitle}>
+      <Text variant="body" color={theme.textMuted} style={styles.subtitle}>
         {t.payment.successSubtitle}
       </Text>
       <Button label={t.payment.successCta} onPress={() => router.replace('/(app)/profile')} />
@@ -35,7 +37,6 @@ export default function PaymentSuccessScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.stone50,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,

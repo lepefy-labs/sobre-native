@@ -4,11 +4,13 @@ import { useRouter } from 'expo-router'
 import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 import { getT, getLangFromStorage } from '@/lib/i18n'
-import { colors, spacing } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
+import { spacing } from '@/constants/theme'
 import type { Translations } from '@/lib/i18n/types'
 
 export default function PaymentCancelScreen() {
   const router = useRouter()
+  const theme = useTheme()
   const [t, setT] = useState<Translations>(getT('it'))
 
   useEffect(() => {
@@ -16,12 +18,12 @@ export default function PaymentCancelScreen() {
   }, [])
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <Text style={styles.emoji}>👋</Text>
       <Text variant="heading" style={styles.title}>
         {t.payment.cancelTitle}
       </Text>
-      <Text variant="body" color={colors.stone500} style={styles.subtitle}>
+      <Text variant="body" color={theme.textMuted} style={styles.subtitle}>
         {t.payment.cancelSubtitle}
       </Text>
       <Button label={t.payment.cancelCta} onPress={() => router.replace('/(app)/profile')} />
@@ -32,7 +34,6 @@ export default function PaymentCancelScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.stone50,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,

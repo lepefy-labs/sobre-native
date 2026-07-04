@@ -1,7 +1,9 @@
-import { useState } from 'react'
-import { Pressable, ActivityIndicator, StyleSheet, type GestureResponderEvent } from 'react-native'
+import { useRef } from 'react'
+import { Pressable, Animated, ActivityIndicator, StyleSheet, type GestureResponderEvent } from 'react-native'
+import * as Haptics from 'expo-haptics'
 import { Text } from './Text'
-import { colors, spacing, radius, fontSize, fontWeight } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
+import { spacing, radius, fontSize, fontWeight } from '@/constants/theme'
 
 type Variant = 'primary' | 'secondary' | 'ghost'
 
@@ -15,35 +17,57 @@ type ButtonProps = {
 
 export function Button({ label, onPress, disabled, loading, variant = 'primary' }: ButtonProps) {
   const isDisabled = disabled || loading
-  const [pressed, setPressed] = useState(false)
+  const theme = useTheme()
+  const scale = useRef(new Animated.Value(1)).current
+
+  function handlePressIn() {
+    if (isDisabled) return
+    Animated.spring(scale, { toValue: 0.97, useNativeDriver: true, speed: 40, bounciness: 6 }).start()
+  }
+
+  function handlePressOut() {
+    Animated.spring(scale, { toValue: 1, useNativeDriver: true, speed: 40, bounciness: 6 }).start()
+  }
+
+  function handlePress(event: GestureResponderEvent) {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
+    onPress(event)
+  }
+
+  const backgroundColor =
+    variant === 'primary' ? theme.primaryBg : variant === 'secondary' ? theme.surface : 'transparent'
+  const labelColor =
+    variant === 'primary' ? theme.onPrimary : variant === 'secondary' ? theme.textSecondary : theme.textMuted
 
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={isDisabled}
-      onPressIn={() => setPressed(true)}
-      onPressOut={() => setPressed(false)}
-      style={[
-        styles.base,
-        styles[variant],
-        isDisabled && styles.disabled,
-        pressed && !isDisabled && styles.pressed,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={variant === 'primary' ? colors.white : colors.stone800} />
-      ) : (
-        <Text style={[styles.label, labelColor[variant]]}>{label}</Text>
-      )}
-    </Pressable>
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        onPress={handlePress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        disabled={isDisabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: isDisabled, busy: loading }}
+        style={[
+          styles.base,
+          {
+            backgroundColor,
+            borderWidth: variant === 'secondary' ? 1 : 0,
+            borderColor: theme.border,
+          },
+          isDisabled && styles.disabled,
+        ]}
+      >
+        {loading ? (
+          <ActivityIndicator color={labelColor} />
+        ) : (
+          <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
+        )}
+      </Pressable>
+    </Animated.View>
   )
 }
-
-const labelColor = StyleSheet.create({
-  primary: { color: colors.white },
-  secondary: { color: colors.stone700 },
-  ghost: { color: colors.stone500 },
-})
 
 const styles = StyleSheet.create({
   base: {
@@ -53,22 +77,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingHorizontal: spacing.lg,
   },
-  primary: {
-    backgroundColor: colors.stone800,
-  },
-  secondary: {
-    backgroundColor: colors.white,
-    borderWidth: 1,
-    borderColor: colors.stone200,
-  },
-  ghost: {
-    backgroundColor: 'transparent',
-  },
   disabled: {
     opacity: 0.5,
-  },
-  pressed: {
-    opacity: 0.85,
   },
   label: {
     fontSize: fontSize.base,

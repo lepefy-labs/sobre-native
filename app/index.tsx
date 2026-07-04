@@ -4,12 +4,13 @@ import { Redirect } from 'expo-router'
 import { useAuthContext } from './_layout'
 import { getLangFromStorage } from '@/lib/i18n'
 import { supabase } from '@/lib/supabase'
-import { colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 
 type Destination = '/(auth)/lang' | '/(auth)/login' | '/(onboarding)' | '/(app)/home'
 
 export default function Index() {
   const { session, loading: authLoading } = useAuthContext()
+  const theme = useTheme()
   const [destination, setDestination] = useState<Destination | null>(null)
 
   useEffect(() => {
@@ -48,8 +49,8 @@ export default function Index() {
 
   if (!destination) {
     return (
-      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: colors.stone50 }}>
-        <ActivityIndicator color={colors.stone800} />
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: theme.bg }}>
+        <ActivityIndicator color={theme.text} />
       </View>
     )
   }

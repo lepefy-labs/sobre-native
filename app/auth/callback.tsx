@@ -2,11 +2,13 @@ import { useEffect, useRef } from 'react'
 import { View, ActivityIndicator, StyleSheet } from 'react-native'
 import { useLocalSearchParams, useRouter } from 'expo-router'
 import type { EmailOtpType } from '@supabase/supabase-js'
+import * as Haptics from 'expo-haptics'
 import { supabase } from '@/lib/supabase'
-import { colors } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
 
 export default function AuthCallbackScreen() {
   const router = useRouter()
+  const theme = useTheme()
   const { token_hash, type } = useLocalSearchParams<{ token_hash?: string; type?: string }>()
   const handled = useRef(false)
 
@@ -16,6 +18,7 @@ export default function AuthCallbackScreen() {
 
     async function handleCallback() {
       if (!token_hash || !type) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
         router.replace('/(auth)/login?error=1')
         return
       }
@@ -26,10 +29,12 @@ export default function AuthCallbackScreen() {
       })
 
       if (error) {
+        Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error)
         router.replace('/(auth)/login?error=1')
         return
       }
 
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
       router.replace('/')
     }
 
@@ -37,8 +42,8 @@ export default function AuthCallbackScreen() {
   }, [token_hash, type, router])
 
   return (
-    <View style={styles.container}>
-      <ActivityIndicator color={colors.stone800} />
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <ActivityIndicator color={theme.text} />
     </View>
   )
 }
@@ -48,6 +53,5 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: colors.stone50,
   },
 })

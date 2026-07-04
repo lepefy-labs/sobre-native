@@ -1,14 +1,20 @@
 import { useState } from 'react'
 import { TextInput as RNTextInput, StyleSheet, type TextInputProps as RNTextInputProps } from 'react-native'
-import { colors, spacing, radius, fontSize } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
+import { spacing, radius, fontSize } from '@/constants/theme'
 
 export function TextInput(props: RNTextInputProps) {
   const [focused, setFocused] = useState(false)
+  const theme = useTheme()
 
   return (
     <RNTextInput
-      placeholderTextColor={colors.stone400}
-      style={[styles.base, focused && styles.focused, props.style]}
+      placeholderTextColor={theme.textFaint}
+      style={[
+        styles.base,
+        { borderColor: focused ? theme.accentSoft : theme.border, color: theme.text, backgroundColor: theme.surface },
+        props.style,
+      ]}
       onFocus={(e) => {
         setFocused(true)
         props.onFocus?.(e)
@@ -26,14 +32,8 @@ const styles = StyleSheet.create({
   base: {
     height: 52,
     borderWidth: 1,
-    borderColor: colors.stone200,
     borderRadius: radius.lg,
     paddingHorizontal: spacing.md,
     fontSize: fontSize.base,
-    color: colors.stone800,
-    backgroundColor: colors.white,
-  },
-  focused: {
-    borderColor: colors.amber400,
   },
 })

@@ -3,11 +3,13 @@ import { useRouter } from 'expo-router'
 import { Text } from '@/components/ui/Text'
 import { Button } from '@/components/ui/Button'
 import { setLangInStorage, getT } from '@/lib/i18n'
-import { colors, spacing } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
+import { spacing } from '@/constants/theme'
 import type { ContentLang } from '@/types/database'
 
 export default function LangScreen() {
   const router = useRouter()
+  const theme = useTheme()
   const t = getT('it')
 
   async function selectLang(lang: ContentLang) {
@@ -16,11 +18,11 @@ export default function LangScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <Text variant="heading" style={styles.title}>
         {t.lang.title}
       </Text>
-      <Text variant="body" color={colors.stone500} style={styles.subtitle}>
+      <Text variant="body" color={theme.textMuted} style={styles.subtitle}>
         {t.lang.subtitle}
       </Text>
 
@@ -35,7 +37,6 @@ export default function LangScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.stone50,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,

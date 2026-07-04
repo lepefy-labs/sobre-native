@@ -46,7 +46,7 @@ export const fr: Translations = {
     home: {
       greetingMorning: 'Bonjour',
       greetingEvening: 'Bonsoir',
-      emptyState: 'Aucun contenu disponible pour le moment.',
+      emptyState: 'Rien de nouveau pour l’instant. Reviens plus tard pour ton moment de calme.',
       proPromo: 'Contenus personnalisés selon ton humeur avec Pro',
     },
     mood: {

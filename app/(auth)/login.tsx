@@ -6,11 +6,13 @@ import { Button } from '@/components/ui/Button'
 import { TextInput } from '@/components/ui/TextInput'
 import { getT, getLangFromStorage } from '@/lib/i18n'
 import { signInWithMagicLink, signInWithGoogle } from '@/lib/auth'
-import { colors, spacing } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
+import { spacing } from '@/constants/theme'
 import type { Translations } from '@/lib/i18n/types'
 
 export default function LoginScreen() {
   const router = useRouter()
+  const theme = useTheme()
   const [t, setT] = useState<Translations>(getT('it'))
   const [email, setEmail] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -42,11 +44,11 @@ export default function LoginScreen() {
   }
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
       <Text variant="heading" style={styles.title}>
         {t.auth.login.title}
       </Text>
-      <Text variant="body" color={colors.stone500} style={styles.subtitle}>
+      <Text variant="body" color={theme.textMuted} style={styles.subtitle}>
         {t.auth.login.subtitle}
       </Text>
 
@@ -64,7 +66,7 @@ export default function LoginScreen() {
       />
 
       {error && (
-        <Text variant="caption" color={colors.red500} style={styles.error}>
+        <Text variant="caption" color={theme.danger} style={styles.error} accessibilityRole="alert">
           {error}
         </Text>
       )}
@@ -76,16 +78,16 @@ export default function LoginScreen() {
         disabled={!email.trim()}
       />
 
-      <Text variant="caption" color={colors.stone400} style={styles.noPassword}>
+      <Text variant="caption" color={theme.textFaint} style={styles.noPassword}>
         {t.auth.login.noPassword}
       </Text>
 
       <View style={styles.dividerRow}>
-        <View style={styles.dividerLine} />
-        <Text variant="caption" color={colors.stone400} style={styles.dividerText}>
+        <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
+        <Text variant="caption" color={theme.textFaint} style={styles.dividerText}>
           {t.auth.login.orDivider}
         </Text>
-        <View style={styles.dividerLine} />
+        <View style={[styles.dividerLine, { backgroundColor: theme.border }]} />
       </View>
 
       <Button
@@ -101,7 +103,6 @@ export default function LoginScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.stone50,
     justifyContent: 'center',
     paddingHorizontal: spacing.xl,
   },
@@ -132,7 +133,6 @@ const styles = StyleSheet.create({
   dividerLine: {
     flex: 1,
     height: 1,
-    backgroundColor: colors.stone200,
   },
   dividerText: {
     marginHorizontal: spacing.md,

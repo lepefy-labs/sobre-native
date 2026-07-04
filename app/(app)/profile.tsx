@@ -12,7 +12,8 @@ import { useAuthContext } from '@/app/_layout'
 import { supabase } from '@/lib/supabase'
 import { signOut } from '@/lib/auth'
 import { getT, setLangInStorage } from '@/lib/i18n'
-import { colors, spacing, radius, fontSize } from '@/constants/theme'
+import { useTheme } from '@/hooks/useTheme'
+import { spacing, radius, fontSize } from '@/constants/theme'
 import type { ContentLang } from '@/types/database'
 
 function formatTime(value: string | null | undefined): string {
@@ -36,6 +37,7 @@ function formatDate(value: string | null | undefined): string {
 
 export default function ProfileScreen() {
   const router = useRouter()
+  const theme = useTheme()
   const { user } = useAuthContext()
   const { data: profile } = useProfile()
   const queryClient = useQueryClient()
@@ -141,12 +143,12 @@ export default function ProfileScreen() {
   const isPro = profile?.subscription_status === 'pro'
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]} contentContainerStyle={styles.content}>
       <Text variant="label" style={styles.sectionTitle}>
         {t.profile.sectionAccount}
       </Text>
       <View style={styles.row}>
-        <Text variant="body" color={colors.stone500}>
+        <Text variant="body" color={theme.textMuted}>
           {t.profile.nameLabel}
         </Text>
         {editingName ? (
@@ -160,14 +162,14 @@ export default function ProfileScreen() {
               style={styles.nameInput}
             />
             <Pressable onPress={saveName}>
-              <Text variant="label" color={colors.stone800}>
+              <Text variant="label" color={theme.text}>
                 {t.profile.nameSave}
               </Text>
             </Pressable>
           </View>
         ) : (
           <Pressable style={styles.valueRow} onPress={() => setEditingName(true)}>
-            <Text variant="body" color={colors.stone800}>
+            <Text variant="body" color={theme.text}>
               {profile?.name || '—'}
             </Text>
             <Text style={styles.editIcon}>✏️</Text>
@@ -176,35 +178,47 @@ export default function ProfileScreen() {
       </View>
 
       <View style={styles.row}>
-        <Text variant="body" color={colors.stone500}>
+        <Text variant="body" color={theme.textMuted}>
           {t.profile.emailLabel}
         </Text>
-        <Text variant="body" color={colors.stone400}>
+        <Text variant="body" color={theme.textFaint}>
           {profile?.email}
         </Text>
       </View>
 
       <View style={styles.row}>
-        <Text variant="body" color={colors.stone500}>
+        <Text variant="body" color={theme.textMuted}>
           {t.profile.langLabel}
         </Text>
         <View style={styles.langRow}>
           <Pressable
-            style={[styles.langChip, profile?.lang === 'it' && styles.langChipActive]}
+            style={[
+              styles.langChip,
+              { borderColor: theme.border },
+              profile?.lang === 'it' && { backgroundColor: theme.primaryBg, borderColor: theme.primaryBg },
+            ]}
             onPress={() => selectLang('it')}
           >
-            <Text style={[styles.langChipText, profile?.lang === 'it' && styles.langChipTextActive]}>🇮🇹 IT</Text>
+            <Text style={[styles.langChipText, { color: profile?.lang === 'it' ? theme.onPrimary : theme.textSecondary }]}>
+              🇮🇹 IT
+            </Text>
           </Pressable>
           <Pressable
-            style={[styles.langChip, profile?.lang === 'fr' && styles.langChipActive]}
+            style={[
+              styles.langChip,
+              { borderColor: theme.border },
+              profile?.lang === 'fr' && { backgroundColor: theme.primaryBg, borderColor: theme.primaryBg },
+            ]}
             onPress={() => selectLang('fr')}
           >
-            <Text style={[styles.langChipText, profile?.lang === 'fr' && styles.langChipTextActive]}>🇫🇷 FR</Text>
+            <Text style={[styles.langChipText, { color: profile?.lang === 'fr' ? theme.onPrimary : theme.textSecondary }]}>
+              🇫🇷 FR
+            </Text>
           </Pressable>
         </View>
       </View>
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
 
       <Text variant="label" style={styles.sectionTitle}>
         {t.profile.sectionNotifications}
@@ -215,13 +229,13 @@ export default function ProfileScreen() {
           <Switch
             value={!!profile?.notif_morning_enabled}
             onValueChange={toggleMorning}
-            trackColor={{ true: colors.stone800 }}
+            trackColor={{ true: theme.primaryBg }}
           />
           <Pressable
-            style={styles.timeButton}
+            style={[styles.timeButton, { borderColor: theme.border }]}
             onPress={() => openTimePicker(profile?.notif_morning_time, saveMorningTime)}
           >
-            <Text style={styles.timeButtonText}>{formatTime(profile?.notif_morning_time)}</Text>
+            <Text style={[styles.timeButtonText, { color: theme.text }]}>{formatTime(profile?.notif_morning_time)}</Text>
           </Pressable>
         </View>
       </View>
@@ -231,29 +245,29 @@ export default function ProfileScreen() {
           <Switch
             value={!!profile?.notif_evening_enabled}
             onValueChange={toggleEvening}
-            trackColor={{ true: colors.stone800 }}
+            trackColor={{ true: theme.primaryBg }}
           />
           <Pressable
-            style={styles.timeButton}
+            style={[styles.timeButton, { borderColor: theme.border }]}
             onPress={() => openTimePicker(profile?.notif_evening_time, saveEveningTime)}
           >
-            <Text style={styles.timeButtonText}>{formatTime(profile?.notif_evening_time)}</Text>
+            <Text style={[styles.timeButtonText, { color: theme.text }]}>{formatTime(profile?.notif_evening_time)}</Text>
           </Pressable>
         </View>
       </View>
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
 
       <Text variant="label" style={styles.sectionTitle}>
         {t.profile.sectionSubscription}
       </Text>
       {isPro ? (
         <View>
-          <View style={styles.proBadge}>
-            <Text style={styles.proBadgeText}>{t.profile.subscriptionPro}</Text>
+          <View style={[styles.proBadge, { backgroundColor: theme.accent }]}>
+            <Text style={[styles.proBadgeText, { color: theme.onPrimary }]}>{t.profile.subscriptionPro}</Text>
           </View>
           {profile?.current_period_end && (
-            <Text variant="caption" color={colors.stone500} style={styles.renewalText}>
+            <Text variant="caption" color={theme.textMuted} style={styles.renewalText}>
               {t.profile.subscriptionRenewal} {formatDate(profile.current_period_end)}
             </Text>
           )}
@@ -265,7 +279,7 @@ export default function ProfileScreen() {
         </View>
       ) : (
         <View>
-          <Text variant="body" color={colors.stone500} style={styles.freeText}>
+          <Text variant="body" color={theme.textMuted} style={styles.freeText}>
             {t.profile.subscriptionFree}
           </Text>
           <Button
@@ -282,7 +296,7 @@ export default function ProfileScreen() {
         </View>
       )}
 
-      <View style={styles.divider} />
+      <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
 
       <Text variant="label" style={styles.sectionTitle}>
         {t.profile.sectionOther}
@@ -291,8 +305,8 @@ export default function ProfileScreen() {
       <View style={styles.buttonSpacer} />
       <Button label={t.profile.terms} onPress={openTerms} variant="secondary" />
       <View style={styles.buttonSpacer} />
-      <Pressable onPress={handleLogout} style={styles.logoutButton}>
-        <Text variant="label" color={colors.red500}>
+      <Pressable onPress={handleLogout} style={styles.logoutButton} accessibilityRole="button">
+        <Text variant="label" color={theme.danger}>
           {t.profile.logout}
         </Text>
       </Pressable>
@@ -303,7 +317,6 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.stone50,
   },
   content: {
     paddingHorizontal: spacing.xl,
@@ -343,25 +356,15 @@ const styles = StyleSheet.create({
   },
   langChip: {
     borderWidth: 1,
-    borderColor: colors.stone200,
     borderRadius: radius.md,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
   },
-  langChipActive: {
-    backgroundColor: colors.stone800,
-    borderColor: colors.stone800,
-  },
   langChipText: {
     fontSize: fontSize.sm,
-    color: colors.stone700,
-  },
-  langChipTextActive: {
-    color: colors.white,
   },
   divider: {
     height: 1,
-    backgroundColor: colors.stone100,
     marginVertical: spacing.xl,
   },
   notifRow: {
@@ -377,25 +380,21 @@ const styles = StyleSheet.create({
   },
   timeButton: {
     borderWidth: 1,
-    borderColor: colors.stone200,
     borderRadius: radius.md,
     paddingVertical: spacing.sm,
     paddingHorizontal: spacing.md,
   },
   timeButtonText: {
     fontSize: fontSize.base,
-    color: colors.stone800,
   },
   proBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: colors.amber600,
     borderRadius: radius.full,
     paddingVertical: spacing.xs,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.sm,
   },
   proBadgeText: {
-    color: colors.white,
     fontSize: fontSize.sm,
     fontWeight: '600',
   },
