@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Pressable, ActivityIndicator, StyleSheet, type GestureResponderEvent } from 'react-native'
 import { Text } from './Text'
 import { colors, spacing, radius, fontSize, fontWeight } from '@/constants/theme'
@@ -14,12 +15,15 @@ type ButtonProps = {
 
 export function Button({ label, onPress, disabled, loading, variant = 'primary' }: ButtonProps) {
   const isDisabled = disabled || loading
+  const [pressed, setPressed] = useState(false)
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      style={({ pressed }) => [
+      onPressIn={() => setPressed(true)}
+      onPressOut={() => setPressed(false)}
+      style={[
         styles.base,
         styles[variant],
         isDisabled && styles.disabled,
