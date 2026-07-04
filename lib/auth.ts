@@ -5,7 +5,7 @@ import { supabase } from './supabase'
 WebBrowser.maybeCompleteAuthSession()
 
 export async function signInWithMagicLink(email: string): Promise<{ error: string | null }> {
-  const redirectTo = AuthSession.makeRedirectUri({ path: '/(app)/home' })
+  const redirectTo = AuthSession.makeRedirectUri({ scheme: 'sobre', path: 'auth/callback' })
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: { emailRedirectTo: redirectTo },

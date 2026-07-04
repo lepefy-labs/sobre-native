@@ -19,7 +19,7 @@ export const fr: Translations = {
       noPassword: "Pas de mot de passe. On t'envoie un lien magique.",
       checkEmailTitle: 'Vérifie tes emails',
       checkEmailBody: 'On a envoyé un lien à ',
-      checkEmailInstruction: 'Clique le lien pour accéder.',
+      checkEmailInstruction: "Clique le lien dans l'email : tu reviendras automatiquement dans l'app.",
       checkEmailBack: 'Utiliser un autre email',
       orDivider: 'ou',
       googleCta: 'Se connecter avec Google',
