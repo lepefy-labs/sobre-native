@@ -19,15 +19,12 @@ export async function verifyOtp(
 ): Promise<{ error: string | null; session: Session | null }> {
   const cleanToken = token.trim()
   console.log('verifyOtp request:', JSON.stringify({ email, token: cleanToken }))
-
   const { data, error } = await supabase.auth.verifyOtp({
     email,
     token: cleanToken,
     type: 'email',
   })
-
   console.log('verifyOtp result:', JSON.stringify(data), JSON.stringify(error))
-
   if (!error && data.session) {
     const { error: sessionError } = await supabase.auth.setSession({
       access_token: data.session.access_token,
@@ -35,26 +32,25 @@ export async function verifyOtp(
     })
     return { error: sessionError?.message ?? null, session: sessionError ? null : data.session }
   }
-
   return { error: error?.message ?? null, session: null }
 }
 
 export async function signInWithGoogle(): Promise<{ error: string | null }> {
-  const redirectTo = AuthSession.makeRedirectUri({ path: '/(app)/home' })
+  const redirectTo = AuthSession.makeRedirectUri({
+    scheme: 'sobre',
+    path: 'auth/callback',
+  })
   const { data, error } = await supabase.auth.signInWithOAuth({
     provider: 'google',
     options: { redirectTo, skipBrowserRedirect: true },
   })
   if (error || !data?.url) return { error: error?.message ?? 'No auth URL returned' }
-
   const result = await WebBrowser.openAuthSessionAsync(data.url, redirectTo)
   if (result.type !== 'success') return { error: null }
-
   const { url } = result
   const params = new URLSearchParams(url.split('#')[1] ?? url.split('?')[1] ?? '')
   const access_token = params.get('access_token')
   const refresh_token = params.get('refresh_token')
-
   if (access_token && refresh_token) {
     const { error: sessionError } = await supabase.auth.setSession({ access_token, refresh_token })
     return { error: sessionError?.message ?? null }
