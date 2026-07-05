@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { View, ScrollView, Animated, StyleSheet } from 'react-native'
+import { View, ScrollView, Animated, StyleSheet, useColorScheme } from 'react-native'
+import { LinearGradient } from 'expo-linear-gradient'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQueryClient } from '@tanstack/react-query'
 import { Text } from '@/components/ui/Text'
@@ -12,7 +13,7 @@ import { useAuthContext } from '@/app/_layout'
 import { supabase } from '@/lib/supabase'
 import { getT } from '@/lib/i18n'
 import { useTheme } from '@/hooks/useTheme'
-import { spacing, radius } from '@/constants/theme'
+import { spacing, radius, typography, fonts, gradient } from '@/constants/theme'
 import type { MoodValue } from '@/types/database'
 
 export default function HomeScreen() {
@@ -21,9 +22,11 @@ export default function HomeScreen() {
   const { content, todayMood, slot, userName, lang, isLoading } = useHomeData()
   const queryClient = useQueryClient()
   const theme = useTheme()
+  const scheme = useColorScheme()
   const t = getT(lang)
 
   const greeting = slot === 'morning' ? t.dashboard.home.greetingMorning : t.dashboard.home.greetingEvening
+  const backgroundGradient = gradient[scheme === 'dark' ? 'dark' : 'light'][slot]
 
   async function saveMood(value: MoodValue) {
     if (!user) return
@@ -46,39 +49,51 @@ export default function HomeScreen() {
   }
 
   return (
-    <SafeAreaView style={[styles.safe, { backgroundColor: theme.bg }]} edges={['top']}>
-      <ScrollView contentContainerStyle={styles.scroll}>
-        <View style={styles.content}>
-          <Text variant="caption" color={theme.textFaint} style={styles.greeting}>
-            {greeting.toUpperCase()}
-          </Text>
-          {userName && (
-            <Text variant="heading" style={styles.name}>
-              {userName}
+    <LinearGradient colors={backgroundGradient} style={styles.safe}>
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <ScrollView contentContainerStyle={styles.scroll}>
+          <View>
+            <Text
+              style={[typography.caption, styles.greeting, { fontFamily: fonts.serif.regular, color: theme.textFaint }]}
+            >
+              {greeting.toUpperCase()}
             </Text>
-          )}
-
-          {isLoading ? (
-            <HomeSkeleton />
-          ) : content ? (
-            <ContentCard content={content} lang={lang} style={styles.card} />
-          ) : (
-            <Card padding="lg" style={[styles.card, styles.emptyCard]}>
-              <BreathingMark />
-              <Text variant="body" color={theme.textMuted} style={styles.emptyText}>
-                {t.dashboard.home.emptyState}
+            {userName && (
+              <Text style={[typography.display, styles.name, { fontFamily: fonts.serif.light, color: theme.text }]}>
+                {userName}
               </Text>
-            </Card>
-          )}
+            )}
+          </View>
 
-          {!isLoading && (
-            <View style={styles.moodWrap}>
-              <MoodCheckin slot={slot} initialMood={todayMood} onSave={saveMood} lang={lang} />
-            </View>
-          )}
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+          <View style={styles.middle}>
+            {isLoading ? (
+              <HomeSkeleton />
+            ) : content ? (
+              <ContentCard content={content} lang={lang} style={styles.card} />
+            ) : (
+              <Card padding="lg" style={[styles.card, styles.emptyCard]}>
+                <BreathingMark />
+                <Text variant="body" color={theme.textMuted} style={styles.emptyText}>
+                  {t.dashboard.home.emptyState}
+                </Text>
+              </Card>
+            )}
+
+            {!isLoading && (
+              <View style={styles.moodWrap}>
+                <MoodCheckin slot={slot} initialMood={todayMood} onSave={saveMood} lang={lang} />
+              </View>
+            )}
+          </View>
+
+          <View style={styles.footer}>
+            <Text style={[typography.caption, styles.footerText, { color: theme.textFootnote }]}>
+              {t.dashboard.home.footerPayoff}
+            </Text>
+          </View>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
   )
 }
 
@@ -142,10 +157,16 @@ const styles = StyleSheet.create({
   },
   scroll: {
     flexGrow: 1,
-  },
-  content: {
+    justifyContent: 'space-between',
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
+    paddingBottom: spacing.lg,
+  },
+  middle: {
+    marginVertical: spacing.xxl,
+  },
+  footer: {
+    alignItems: 'center',
   },
   greeting: {
     textTransform: 'uppercase',
@@ -155,7 +176,6 @@ const styles = StyleSheet.create({
     marginTop: spacing.xs,
   },
   card: {
-    marginTop: spacing.lg,
     gap: spacing.sm,
   },
   emptyCard: {
@@ -173,6 +193,9 @@ const styles = StyleSheet.create({
   },
   moodWrap: {
     marginTop: spacing.xl,
+  },
+  footerText: {
+    textAlign: 'center',
   },
   skeletonBlock: {
     borderRadius: radius.md,

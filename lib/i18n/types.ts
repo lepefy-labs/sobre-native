@@ -26,7 +26,10 @@ export type Translations = {
   }
   dashboard: {
     nav: { home: string; archive: string; profile: string; pro: string }
-    home: { greetingMorning: string; greetingEvening: string; emptyState: string; proPromo: string }
+    home: {
+      greetingMorning: string; greetingEvening: string; emptyState: string; proPromo: string
+      footerPayoff: string
+    }
     mood: {
       question: string; confirmed: string
       options: { very_low: string; low: string; neutral: string; good: string; great: string }

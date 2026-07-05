@@ -5,6 +5,7 @@ export const lightColors = {
   borderSubtle: '#f5f5f4',
   border: '#e7e5e4',
   textFaint: '#a8a29e',
+  textFootnote: '#d6d3d1',
   textMuted: '#78716c',
   textSecondary: '#44403c',
   text: '#292524',
@@ -27,6 +28,7 @@ export const darkColors = {
   borderSubtle: '#2b2925',
   border: '#3a362f',
   textFaint: '#8a8377',
+  textFootnote: '#57534e',
   textMuted: '#b0a89a',
   textSecondary: '#d8d2c5',
   text: '#f5f2ec',
@@ -55,4 +57,57 @@ export const fontWeight = {
   normal: '400',
   medium: '500',
   semibold: '600',
+} as const
+
+/** Explicit typography scale — prefer these over ad hoc fontSize/fontWeight combos. */
+export const typography = {
+  display: {
+    fontSize: fontSize.xxxl,
+    fontWeight: fontWeight.light,
+    lineHeight: 40,
+  },
+  body: {
+    fontSize: fontSize.base,
+    fontWeight: fontWeight.normal,
+    lineHeight: 24,
+  },
+  caption: {
+    fontSize: fontSize.xs,
+    fontWeight: fontWeight.normal,
+    lineHeight: 16,
+  },
+} as const
+
+/** Humanist serif reserved for the greeting eyebrow and the user's name. */
+export const fonts = {
+  serif: {
+    light: 'Fraunces_300Light',
+    regular: 'Fraunces_400Regular',
+  },
+} as const
+
+/**
+ * Generative gradients (no image assets) derived from the stone/amber palette.
+ * `morning`/`evening` drive the full-screen wash; `byContentType` gives each
+ * content type a subtly different tone for its card.
+ */
+export const gradient = {
+  light: {
+    morning: ['#fffbeb', '#fafaf9'] as const,
+    evening: ['#f5f5f4', '#e7e5e4'] as const,
+    byContentType: {
+      thought: ['#fdfcfb', '#f5f5f4'] as const,
+      story: ['#fffbeb', '#f5f5f4'] as const,
+      tip: ['#fef3c7', '#fefaf5'] as const,
+    },
+  },
+  dark: {
+    morning: ['#242220', '#1c1b19'] as const,
+    evening: ['#1c1b19', '#171614'] as const,
+    byContentType: {
+      thought: ['#242220', '#1e1c1a'] as const,
+      story: ['#2b2925', '#242220'] as const,
+      tip: ['#2b2925', '#1e1c1a'] as const,
+    },
+  },
 } as const

@@ -59,6 +59,7 @@ export const fr: Translations = {
       greetingEvening: 'Bonsoir',
       emptyState: 'Rien de nouveau pour l’instant. Reviens plus tard pour ton moment de calme.',
       proPromo: 'Contenus personnalisés selon ton humeur avec Pro',
+      footerPayoff: 'La bonne énergie, là où ça compte.',
     },
     mood: {
       question: 'Comment tu te sens ?',

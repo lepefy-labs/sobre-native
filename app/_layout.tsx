@@ -3,6 +3,7 @@ import { createContext, useContext } from 'react'
 import { Stack } from 'expo-router'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
+import { useFonts, Fraunces_300Light, Fraunces_400Regular } from '@expo-google-fonts/fraunces'
 import { useAuth } from '@/hooks/useAuth'
 import type { Session, User } from '@supabase/supabase-js'
 
@@ -26,6 +27,10 @@ function AuthProvider({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  const [fontsLoaded] = useFonts({ Fraunces_300Light, Fraunces_400Regular })
+
+  if (!fontsLoaded) return null
+
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
