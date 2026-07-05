@@ -93,8 +93,8 @@ export const fonts = {
  */
 export const gradient = {
   light: {
-    morning: ['#fffbeb', '#fafaf9'] as const,
-    evening: ['#f5f5f4', '#e7e5e4'] as const,
+    morning: ['#fef9ec', '#f5efe0'] as const,
+    evening: ['#eeecea', '#ddd9d3'] as const,
     byContentType: {
       thought: ['#fdfcfb', '#f5f5f4'] as const,
       story: ['#fffbeb', '#f5f5f4'] as const,

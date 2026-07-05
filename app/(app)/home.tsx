@@ -1,5 +1,14 @@
-import { useEffect, useRef } from 'react'
-import { View, ScrollView, Animated, StyleSheet, useColorScheme } from 'react-native'
+import { useEffect, useRef, useState } from 'react'
+import {
+  View,
+  ScrollView,
+  Animated,
+  StyleSheet,
+  useColorScheme,
+  type LayoutChangeEvent,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useQueryClient } from '@tanstack/react-query'
@@ -16,6 +25,8 @@ import { useTheme } from '@/hooks/useTheme'
 import { spacing, radius, typography, fonts, gradient } from '@/constants/theme'
 import type { MoodValue } from '@/types/database'
 
+const SCROLL_FADE_BOTTOM_THRESHOLD = 20
+
 export default function HomeScreen() {
   const { user } = useAuthContext()
   const { data: profile } = useProfile()
@@ -25,8 +36,27 @@ export default function HomeScreen() {
   const scheme = useColorScheme()
   const t = getT(lang)
 
+  const [viewportHeight, setViewportHeight] = useState(0)
+  const [contentHeight, setContentHeight] = useState(0)
+  const [scrollOffset, setScrollOffset] = useState(0)
+
   const greeting = slot === 'morning' ? t.dashboard.home.greetingMorning : t.dashboard.home.greetingEvening
   const backgroundGradient = gradient[scheme === 'dark' ? 'dark' : 'light'][slot]
+
+  const distanceFromBottom = contentHeight - viewportHeight - scrollOffset
+  const showScrollFade = viewportHeight > 0 && contentHeight > viewportHeight && distanceFromBottom > SCROLL_FADE_BOTTOM_THRESHOLD
+
+  function handleScrollViewLayout(event: LayoutChangeEvent) {
+    setViewportHeight(event.nativeEvent.layout.height)
+  }
+
+  function handleContentSizeChange(_width: number, height: number) {
+    setContentHeight(height)
+  }
+
+  function handleScroll(event: NativeSyntheticEvent<NativeScrollEvent>) {
+    setScrollOffset(event.nativeEvent.contentOffset.y)
+  }
 
   async function saveMood(value: MoodValue) {
     if (!user) return
@@ -52,49 +82,60 @@ export default function HomeScreen() {
     <View style={[styles.safe, { backgroundColor: theme.bg }]}>
       <LinearGradient colors={backgroundGradient} style={[StyleSheet.absoluteFill, styles.backgroundWash]} />
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <ScrollView contentContainerStyle={styles.scroll}>
-          <View style={styles.hero}>
-            <Text
-              style={[typography.caption, styles.greeting, { fontFamily: fonts.serif.regular, color: theme.textFaint }]}
-            >
-              {greeting.toUpperCase()}
-            </Text>
-            {userName && (
-              <Text style={[typography.display, styles.name, { fontFamily: fonts.serif.light, color: theme.text }]}>
-                {userName}
+        <View style={styles.scrollWrap}>
+          <ScrollView
+            contentContainerStyle={styles.scroll}
+            onLayout={handleScrollViewLayout}
+            onContentSizeChange={handleContentSizeChange}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+          >
+            <View style={styles.hero}>
+              <Text
+                style={[typography.caption, styles.greeting, { fontFamily: fonts.serif.regular, color: theme.textFaint }]}
+              >
+                {greeting.toUpperCase()}
               </Text>
-            )}
-          </View>
-
-          <View style={styles.middle}>
-            {isLoading ? (
-              <HomeSkeleton />
-            ) : content ? (
-              <ContentCard content={content} lang={lang} style={styles.card} />
-            ) : (
-              <Card padding="lg" style={[styles.card, styles.emptyCard]}>
-                <BreathingMark />
-                <Text variant="body" color={theme.textMuted} style={styles.emptyText}>
-                  {t.dashboard.home.emptyState}
+              {userName && (
+                <Text style={[typography.display, styles.name, { fontFamily: fonts.serif.light, color: theme.text }]}>
+                  {userName}
                 </Text>
-              </Card>
-            )}
+              )}
+            </View>
 
-            {!isLoading && (
-              <View style={styles.moodWrap}>
-                <MoodCheckin slot={slot} initialMood={todayMood} onSave={saveMood} lang={lang} />
-              </View>
-            )}
-          </View>
+            <View style={styles.middle}>
+              {isLoading ? (
+                <HomeSkeleton />
+              ) : content ? (
+                <ContentCard content={content} lang={lang} style={styles.card} />
+              ) : (
+                <Card padding="lg" style={[styles.card, styles.emptyCard]}>
+                  <BreathingMark />
+                  <Text variant="body" color={theme.textMuted} style={styles.emptyText}>
+                    {t.dashboard.home.emptyState}
+                  </Text>
+                </Card>
+              )}
 
-          <View style={styles.spacer} />
+              {!isLoading && (
+                <View style={styles.moodWrap}>
+                  <MoodCheckin slot={slot} initialMood={todayMood} onSave={saveMood} lang={lang} />
+                </View>
+              )}
+            </View>
 
-          <View style={styles.footer}>
-            <Text style={[typography.caption, styles.footerText, { color: theme.textFootnote }]}>
-              {t.dashboard.home.footerPayoff}
-            </Text>
-          </View>
-        </ScrollView>
+            <View style={styles.spacer} />
+
+            <View style={styles.footer}>
+              <Text style={[typography.caption, styles.footerText, { color: theme.textFootnote }]}>
+                {t.dashboard.home.footerPayoff}
+              </Text>
+            </View>
+          </ScrollView>
+          {showScrollFade && (
+            <LinearGradient colors={['transparent', theme.bg]} style={styles.scrollFade} pointerEvents="none" />
+          )}
+        </View>
       </SafeAreaView>
     </View>
   )
@@ -159,7 +200,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backgroundWash: {
-    opacity: 0.18,
+    opacity: 0.4,
+  },
+  scrollWrap: {
+    flex: 1,
+  },
+  scrollFade: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 40,
   },
   scroll: {
     flexGrow: 1,
