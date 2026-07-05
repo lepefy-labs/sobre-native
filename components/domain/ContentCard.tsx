@@ -1,6 +1,11 @@
-import { View, StyleSheet, useColorScheme, type ViewStyle } from 'react-native'
+import { useRef, useState } from 'react'
+import { View, Pressable, StyleSheet, useColorScheme, type ViewStyle } from 'react-native'
 import { LinearGradient } from 'expo-linear-gradient'
+import { captureRef } from 'react-native-view-shot'
+import * as Sharing from 'expo-sharing'
 import { Text } from '@/components/ui/Text'
+import { ShareIcon } from '@/components/ui/icons'
+import { ShareableContentCard, SHARE_CARD_WIDTH, SHARE_CARD_HEIGHT } from './ShareableContentCard'
 import { useTheme } from '@/hooks/useTheme'
 import { spacing, radius, fontSize, fontWeight, typography, gradient } from '@/constants/theme'
 import { getT } from '@/lib/i18n'
@@ -23,23 +28,50 @@ export function ContentCard({ content, lang = 'it', style }: ContentCardProps) {
   const scheme = useColorScheme()
   const tags = content.tags.slice(0, 3)
   const cardGradient = gradient[scheme === 'dark' ? 'dark' : 'light'].byContentType[content.type]
+  const shareCardRef = useRef<View>(null)
+  const [isSharing, setIsSharing] = useState(false)
+
+  async function handleShare() {
+    if (isSharing) return
+    setIsSharing(true)
+    try {
+      const uri = await captureRef(shareCardRef, {
+        format: 'png',
+        quality: 1,
+        width: SHARE_CARD_WIDTH,
+        height: SHARE_CARD_HEIGHT,
+      })
+      if (await Sharing.isAvailableAsync()) {
+        await Sharing.shareAsync(uri, { mimeType: 'image/png' })
+      }
+    } catch {
+      // sharing is a non-critical UX path — fail silently
+    } finally {
+      setIsSharing(false)
+    }
+  }
 
   return (
-    <LinearGradient
-      colors={cardGradient}
-      style={[styles.card, { borderColor: theme.borderSubtle }, style]}
-    >
-      {content.type === 'story' && content.title && (
-        <Text style={[typography.caption, styles.storyTitle, { color: theme.textFaint }]}>
-          {content.title.toUpperCase()}
-        </Text>
-      )}
+    <LinearGradient colors={cardGradient} style={[styles.card, { borderColor: theme.borderSubtle }, style]}>
+      <View style={styles.header}>
+        <View style={styles.headerLabel}>
+          {content.type === 'story' && content.title && (
+            <Text style={[typography.caption, styles.storyTitle, { color: theme.textFaint }]}>
+              {content.title.toUpperCase()}
+            </Text>
+          )}
 
-      {content.type === 'tip' && (
-        <Text style={[typography.caption, styles.tipBadge, { color: theme.accent }]}>
-          {t.dashboard.content.tipLabel.toUpperCase()}
-        </Text>
-      )}
+          {content.type === 'tip' && (
+            <Text style={[typography.caption, styles.tipBadge, { color: theme.accent }]}>
+              {t.dashboard.content.tipLabel.toUpperCase()}
+            </Text>
+          )}
+        </View>
+
+        <Pressable onPress={handleShare} disabled={isSharing} hitSlop={12} style={styles.shareButton}>
+          <ShareIcon color={theme.textFaint} size={18} />
+        </Pressable>
+      </View>
 
       <Text
         style={[typography.body, { color: theme.textSecondary }, content.type === 'thought' && styles.thoughtBody]}
@@ -56,6 +88,10 @@ export function ContentCard({ content, lang = 'it', style }: ContentCardProps) {
           ))}
         </View>
       )}
+
+      <View style={styles.offscreen} pointerEvents="none">
+        <ShareableContentCard ref={shareCardRef} content={content} lang={lang} />
+      </View>
     </LinearGradient>
   )
 }
@@ -71,17 +107,28 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 2,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: spacing.sm,
+  },
+  headerLabel: {
+    flex: 1,
+    paddingRight: spacing.sm,
+  },
+  shareButton: {
+    padding: 2,
+  },
   storyTitle: {
     fontWeight: fontWeight.medium as any,
     textTransform: 'uppercase',
     letterSpacing: 1.5,
-    marginBottom: spacing.sm,
   },
   tipBadge: {
     fontWeight: fontWeight.semibold as any,
     textTransform: 'uppercase',
     letterSpacing: 1,
-    marginBottom: spacing.sm,
   },
   thoughtBody: {
     fontSize: fontSize.xl,
@@ -99,5 +146,12 @@ const styles = StyleSheet.create({
     borderRadius: radius.full,
     paddingHorizontal: spacing.sm,
     paddingVertical: 4,
+  },
+  offscreen: {
+    position: 'absolute',
+    width: 0,
+    height: 0,
+    overflow: 'hidden',
+    opacity: 0,
   },
 })

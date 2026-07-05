@@ -1,7 +1,7 @@
 import Svg, { Path, Rect } from 'react-native-svg'
-import type { TabIconProps } from './types'
+import type { IconProps } from './types'
 
-export function TabArchiveIcon({ color, size = 22 }: TabIconProps) {
+export function TabArchiveIcon({ color, size = 22 }: IconProps) {
   const stroke = { stroke: color, strokeWidth: 1.8, strokeLinecap: 'round', strokeLinejoin: 'round' } as const
 
   return (
