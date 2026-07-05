@@ -98,7 +98,7 @@ export const gradient = {
     byContentType: {
       thought: ['#fdfcfb', '#f5f5f4'] as const,
       story: ['#fffbeb', '#f5f5f4'] as const,
-      tip: ['#fef3c7', '#fefaf5'] as const,
+      tip: ['#fffbeb', '#fefaf5'] as const,
     },
   },
   dark: {

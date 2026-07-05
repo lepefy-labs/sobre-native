@@ -49,10 +49,11 @@ export default function HomeScreen() {
   }
 
   return (
-    <LinearGradient colors={backgroundGradient} style={styles.safe}>
-      <SafeAreaView style={styles.safe} edges={['top']}>
+    <View style={[styles.safe, { backgroundColor: theme.bg }]}>
+      <LinearGradient colors={backgroundGradient} style={[StyleSheet.absoluteFill, styles.backgroundWash]} />
+      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <ScrollView contentContainerStyle={styles.scroll}>
-          <View>
+          <View style={styles.hero}>
             <Text
               style={[typography.caption, styles.greeting, { fontFamily: fonts.serif.regular, color: theme.textFaint }]}
             >
@@ -86,6 +87,8 @@ export default function HomeScreen() {
             )}
           </View>
 
+          <View style={styles.spacer} />
+
           <View style={styles.footer}>
             <Text style={[typography.caption, styles.footerText, { color: theme.textFootnote }]}>
               {t.dashboard.home.footerPayoff}
@@ -93,7 +96,7 @@ export default function HomeScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
-    </LinearGradient>
+    </View>
   )
 }
 
@@ -155,18 +158,26 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
   },
+  backgroundWash: {
+    opacity: 0.18,
+  },
   scroll: {
     flexGrow: 1,
-    justifyContent: 'space-between',
     paddingHorizontal: spacing.xl,
     paddingTop: spacing.lg,
-    paddingBottom: spacing.lg,
+  },
+  hero: {
+    marginTop: 24,
   },
   middle: {
-    marginVertical: spacing.xxl,
+    marginTop: 32,
+  },
+  spacer: {
+    flex: 1,
   },
   footer: {
     alignItems: 'center',
+    marginBottom: 20,
   },
   greeting: {
     textTransform: 'uppercase',

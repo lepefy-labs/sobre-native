@@ -1,13 +1,12 @@
 import { useRef, useState } from 'react'
-import { View, Pressable, StyleSheet, useColorScheme, type ViewStyle } from 'react-native'
-import { LinearGradient } from 'expo-linear-gradient'
+import { View, Pressable, StyleSheet, type ViewStyle } from 'react-native'
 import { captureRef } from 'react-native-view-shot'
 import * as Sharing from 'expo-sharing'
 import { Text } from '@/components/ui/Text'
 import { ShareIcon } from '@/components/ui/icons'
 import { ShareableContentCard, SHARE_CARD_WIDTH, SHARE_CARD_HEIGHT } from './ShareableContentCard'
 import { useTheme } from '@/hooks/useTheme'
-import { spacing, radius, fontSize, fontWeight, typography, gradient } from '@/constants/theme'
+import { spacing, radius, fontSize, fontWeight, typography } from '@/constants/theme'
 import { getT } from '@/lib/i18n'
 import type { ContentLang, ContentType } from '@/types/database'
 
@@ -25,9 +24,7 @@ type ContentCardProps = {
 export function ContentCard({ content, lang = 'it', style }: ContentCardProps) {
   const t = getT(lang)
   const theme = useTheme()
-  const scheme = useColorScheme()
   const tags = content.tags.slice(0, 3)
-  const cardGradient = gradient[scheme === 'dark' ? 'dark' : 'light'].byContentType[content.type]
   const shareCardRef = useRef<View>(null)
   const [isSharing, setIsSharing] = useState(false)
 
@@ -52,7 +49,7 @@ export function ContentCard({ content, lang = 'it', style }: ContentCardProps) {
   }
 
   return (
-    <LinearGradient colors={cardGradient} style={[styles.card, { borderColor: theme.borderSubtle }, style]}>
+    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }, style]}>
       <View style={styles.header}>
         <View style={styles.headerLabel}>
           {content.type === 'story' && content.title && (
@@ -92,7 +89,7 @@ export function ContentCard({ content, lang = 'it', style }: ContentCardProps) {
       <View style={styles.offscreen} pointerEvents="none">
         <ShareableContentCard ref={shareCardRef} content={content} lang={lang} />
       </View>
-    </LinearGradient>
+    </View>
   )
 }
 
@@ -149,9 +146,7 @@ const styles = StyleSheet.create({
   },
   offscreen: {
     position: 'absolute',
-    width: 0,
-    height: 0,
-    overflow: 'hidden',
-    opacity: 0,
+    top: -9999,
+    left: -9999,
   },
 })

@@ -2,16 +2,23 @@ import { useEffect, useState } from 'react'
 import { Tabs } from 'expo-router'
 import { getT, getLangFromStorage } from '@/lib/i18n'
 import { useTheme } from '@/hooks/useTheme'
+import { useProfile } from '@/hooks/useProfile'
 import { TabHomeIcon, TabArchiveIcon, TabProfileIcon } from '@/components/ui/icons'
-import type { Translations } from '@/lib/i18n/types'
+import type { ContentLang } from '@/types/database'
 
 export default function AppLayout() {
-  const [t, setT] = useState<Translations>(getT('it'))
+  const [storedLang, setStoredLang] = useState<ContentLang | null>(null)
+  const { data: profile } = useProfile()
   const theme = useTheme()
 
   useEffect(() => {
-    getLangFromStorage().then((lang) => setT(getT(lang ?? 'it')))
+    getLangFromStorage().then(setStoredLang)
   }, [])
+
+  // profile.lang (Supabase) is the single source of truth once authenticated;
+  // AsyncStorage only covers the brief window before the profile has loaded.
+  const lang: ContentLang = profile?.lang ?? storedLang ?? 'it'
+  const t = getT(lang)
 
   return (
     <Tabs
