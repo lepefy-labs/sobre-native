@@ -1,5 +1,6 @@
 import * as WebBrowser from 'expo-web-browser'
 import * as AuthSession from 'expo-auth-session'
+import type { Session } from '@supabase/supabase-js'
 import { supabase } from './supabase'
 
 WebBrowser.maybeCompleteAuthSession()
@@ -12,13 +13,30 @@ export async function signInWithOtp(email: string): Promise<{ error: string | nu
   return { error: error?.message ?? null }
 }
 
-export async function verifyOtp(email: string, token: string): Promise<{ error: string | null }> {
-  const { error } = await supabase.auth.verifyOtp({
+export async function verifyOtp(
+  email: string,
+  token: string
+): Promise<{ error: string | null; session: Session | null }> {
+  const cleanToken = token.trim()
+  console.log('verifyOtp request:', JSON.stringify({ email, token: cleanToken }))
+
+  const { data, error } = await supabase.auth.verifyOtp({
     email,
-    token,
+    token: cleanToken,
     type: 'email',
   })
-  return { error: error?.message ?? null }
+
+  console.log('verifyOtp result:', JSON.stringify(data), JSON.stringify(error))
+
+  if (!error && data.session) {
+    const { error: sessionError } = await supabase.auth.setSession({
+      access_token: data.session.access_token,
+      refresh_token: data.session.refresh_token,
+    })
+    return { error: sessionError?.message ?? null, session: sessionError ? null : data.session }
+  }
+
+  return { error: error?.message ?? null, session: null }
 }
 
 export async function signInWithGoogle(): Promise<{ error: string | null }> {

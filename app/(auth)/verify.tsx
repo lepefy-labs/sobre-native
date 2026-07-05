@@ -33,13 +33,13 @@ export default function VerifyScreen() {
   async function handleVerify() {
     setError(null)
     setLoading(true)
-    const { error } = await verifyOtp(email, code)
+    const { error, session } = await verifyOtp(email, code.trim())
     setLoading(false)
-    if (error) {
+    if (error || !session) {
       setError(t.auth.verify.errorInvalid)
       return
     }
-    // onAuthStateChange in useAuth gestisce il redirect automaticamente
+    router.replace('/')
   }
 
   async function handleResend() {
