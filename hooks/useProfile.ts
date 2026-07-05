@@ -19,7 +19,7 @@ export function useProfile() {
       const { data: profile, error } = await supabase
         .from('profiles')
         .select(
-          'id, name, email, lang, notif_morning_time, notif_evening_time, notif_morning_enabled, notif_evening_enabled, onboarding_completed, subscription_status, created_at, updated_at, avatar_url, timezone, onesignal_player_id'
+          'id, name, email, lang, notif_morning_time, notif_evening_time, notif_morning_enabled, notif_evening_enabled, onboarding_completed, subscription_status, theme_preference, created_at, updated_at, avatar_url, timezone, onesignal_player_id'
         )
         .eq('id', user.id)
         .single()

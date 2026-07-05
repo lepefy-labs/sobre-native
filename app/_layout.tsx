@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { useFonts, Fraunces_300Light, Fraunces_400Regular } from '@expo-google-fonts/fraunces'
 import { useAuth } from '@/hooks/useAuth'
+import { ThemeProvider } from '@/hooks/useTheme'
 import type { Session, User } from '@supabase/supabase-js'
 
 const queryClient = new QueryClient()
@@ -34,9 +35,11 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <Stack screenOptions={{ headerShown: false }} />
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <Stack screenOptions={{ headerShown: false }} />
+          </AuthProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </SafeAreaProvider>
   )

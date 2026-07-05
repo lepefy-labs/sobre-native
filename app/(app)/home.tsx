@@ -4,7 +4,6 @@ import {
   ScrollView,
   Animated,
   StyleSheet,
-  useColorScheme,
   type LayoutChangeEvent,
   type NativeScrollEvent,
   type NativeSyntheticEvent,
@@ -33,7 +32,6 @@ export default function HomeScreen() {
   const { content, todayMood, slot, userName, lang, isLoading } = useHomeData()
   const queryClient = useQueryClient()
   const theme = useTheme()
-  const scheme = useColorScheme()
   const t = getT(lang)
 
   const [viewportHeight, setViewportHeight] = useState(0)
@@ -41,7 +39,7 @@ export default function HomeScreen() {
   const [scrollOffset, setScrollOffset] = useState(0)
 
   const greeting = slot === 'morning' ? t.dashboard.home.greetingMorning : t.dashboard.home.greetingEvening
-  const backgroundGradient = gradient[scheme === 'dark' ? 'dark' : 'light'][slot]
+  const backgroundGradient = gradient[theme.scheme][slot]
 
   const distanceFromBottom = contentHeight - viewportHeight - scrollOffset
   const showScrollFade = viewportHeight > 0 && contentHeight > viewportHeight && distanceFromBottom > SCROLL_FADE_BOTTOM_THRESHOLD

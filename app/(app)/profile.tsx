@@ -14,7 +14,7 @@ import { signOut } from '@/lib/auth'
 import { getT, setLangInStorage } from '@/lib/i18n'
 import { useTheme } from '@/hooks/useTheme'
 import { spacing, radius, fontSize } from '@/constants/theme'
-import type { ContentLang } from '@/types/database'
+import type { ContentLang, ThemePreference } from '@/types/database'
 
 function formatTime(value: string | null | undefined): string {
   return value ? value.slice(0, 5) : '--:--'
@@ -66,6 +66,10 @@ export default function ProfileScreen() {
     await supabase.from('profiles').update({ lang }).eq('id', user.id)
     await setLangInStorage(lang)
     invalidateProfile()
+  }
+
+  function selectTheme(preference: ThemePreference) {
+    theme.setThemePreference(preference)
   }
 
   async function toggleMorning(value: boolean) {
@@ -215,6 +219,40 @@ export default function ProfileScreen() {
               🇫🇷 FR
             </Text>
           </Pressable>
+        </View>
+      </View>
+
+      <View style={styles.row}>
+        <Text variant="body" color={theme.textMuted}>
+          {t.profile.themeLabel}
+        </Text>
+        <View style={styles.langRow}>
+          {(
+            [
+              ['system', t.profile.themeSystem],
+              ['light', t.profile.themeLight],
+              ['dark', t.profile.themeDark],
+            ] as [ThemePreference, string][]
+          ).map(([preference, label]) => (
+            <Pressable
+              key={preference}
+              style={[
+                styles.langChip,
+                { borderColor: theme.border },
+                theme.themePreference === preference && { backgroundColor: theme.primaryBg, borderColor: theme.primaryBg },
+              ]}
+              onPress={() => selectTheme(preference)}
+            >
+              <Text
+                style={[
+                  styles.langChipText,
+                  { color: theme.themePreference === preference ? theme.onPrimary : theme.textSecondary },
+                ]}
+              >
+                {label}
+              </Text>
+            </Pressable>
+          ))}
         </View>
       </View>
 

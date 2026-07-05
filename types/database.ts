@@ -3,6 +3,7 @@ export type ContentLang = 'it' | 'fr'
 export type MoodValue = 'very_low' | 'low' | 'neutral' | 'good' | 'great'
 export type NotificationSlot = 'morning' | 'evening'
 export type SubscriptionStatus = 'free' | 'pro' | 'cancelled' | 'past_due'
+export type ThemePreference = 'system' | 'light' | 'dark'
 
 export type Database = {
   public: {
@@ -22,6 +23,7 @@ export type Database = {
           onesignal_player_id: string | null
           subscription_status: SubscriptionStatus
           onboarding_completed: boolean
+          theme_preference: ThemePreference
           created_at: string
           updated_at: string
         }
@@ -38,6 +40,7 @@ export type Database = {
           onesignal_player_id?: string | null
           subscription_status?: SubscriptionStatus
           onboarding_completed?: boolean
+          theme_preference?: ThemePreference
         }
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>
       }

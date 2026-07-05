@@ -48,6 +48,7 @@ export type Translations = {
     sectionAccount: string; sectionNotifications: string; sectionSubscription: string; sectionOther: string
     nameLabel: string; nameSave: string; emailLabel: string; langLabel: string
     morningLabel: string; eveningLabel: string
+    themeLabel: string; themeSystem: string; themeLight: string; themeDark: string
     subscriptionFree: string; subscriptionPro: string; subscriptionRenewal: string
     upgradeMonthly: string; upgradeYearly: string; manageSubscription: string
     privacy: string; terms: string; logout: string; logoutConfirm: string; logoutCancel: string
