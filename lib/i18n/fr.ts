@@ -62,9 +62,15 @@ export const fr: Translations = {
       footerPayoff: 'La bonne énergie, là où ça compte.',
     },
     mood: {
-      question: 'Comment tu te sens ?',
+      question: 'Ton énergie aujourd’hui',
       confirmed: 'Enregistré ✓',
-      options: { very_low: 'À vide', low: 'Pas top', neutral: 'Bof', good: 'Bien', great: 'Au top' },
+      options: {
+        very_low: 'Dispersé',
+        low: 'Réfléchi',
+        neutral: 'Calme',
+        good: 'Équilibré',
+        great: 'Concentré',
+      },
     },
     content: { tipLabel: 'Conseil' },
     pro: {

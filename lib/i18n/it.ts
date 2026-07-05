@@ -62,9 +62,15 @@ export const it: Translations = {
       footerPayoff: "L'energia giusta, dove conta.",
     },
     mood: {
-      question: 'Come ti senti?',
+      question: 'La tua energia oggi',
       confirmed: 'Registrato ✓',
-      options: { very_low: 'A zero', low: 'Giù', neutral: 'Così così', good: 'Bene', great: 'Carica' },
+      options: {
+        very_low: 'Disperso',
+        low: 'Riflessivo',
+        neutral: 'Calmo',
+        good: 'In equilibrio',
+        great: 'Focalizzato',
+      },
     },
     content: { tipLabel: 'Consiglio' },
     pro: {
