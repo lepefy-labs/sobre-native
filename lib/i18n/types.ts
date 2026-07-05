@@ -34,7 +34,7 @@ export type Translations = {
       question: string; confirmed: string
       options: { very_low: string; low: string; neutral: string; good: string; great: string }
     }
-    content: { tipLabel: string }
+    content: { tipLabel: string; storyLabel: string; thoughtLabel: string }
     pro: {
       planLabel: string; title: string; statusLabel: string; statusActive: string; statusActiveDesc: string
       toggleMonthly: string; toggleAnnual: string; savingsBadge: string
@@ -56,5 +56,14 @@ export type Translations = {
   payment: {
     successTitle: string; successSubtitle: string; successCta: string
     cancelTitle: string; cancelSubtitle: string; cancelCta: string
+  }
+  archive: {
+    title: string
+    emptyState: string
+    emptyFiltered: string
+    emptyHistoryLimit: string
+    today: string
+    yesterday: string
+    filterAll: string
   }
 }

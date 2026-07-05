@@ -72,7 +72,7 @@ export const it: Translations = {
         great: 'Focalizzato',
       },
     },
-    content: { tipLabel: 'Consiglio' },
+    content: { tipLabel: 'Consiglio', storyLabel: 'Storie', thoughtLabel: 'Pensieri' },
     pro: {
       planLabel: 'Piano',
       title: 'Sobre Pro',
@@ -134,5 +134,16 @@ export const it: Translations = {
     cancelTitle: 'Nessun problema',
     cancelSubtitle: 'Puoi passare a Pro in qualsiasi momento dal tuo profilo.',
     cancelCta: 'Torna al profilo',
+  },
+  archive: {
+    title: 'Archivio',
+    emptyState: 'Non hai ancora ricevuto contenuti.',
+    emptyFiltered:
+      'Nessun risultato negli ultimi giorni caricati. Scorri per caricare un periodo più ampio (fino a 6 mesi).',
+    emptyHistoryLimit:
+      'Hai raggiunto il limite di storico consultabile (6 mesi). Nessun contenuto corrisponde ai filtri selezionati in questo periodo.',
+    today: 'Oggi',
+    yesterday: 'Ieri',
+    filterAll: 'Tutti',
   },
 }

@@ -19,9 +19,10 @@ type ContentCardProps = {
   }
   lang?: ContentLang
   style?: ViewStyle
+  onClose?: () => void
 }
 
-export function ContentCard({ content, lang = 'it', style }: ContentCardProps) {
+export function ContentCard({ content, lang = 'it', style, onClose }: ContentCardProps) {
   const t = getT(lang)
   const theme = useTheme()
   const tags = content.tags.slice(0, 3)
@@ -65,9 +66,17 @@ export function ContentCard({ content, lang = 'it', style }: ContentCardProps) {
           )}
         </View>
 
-        <Pressable onPress={handleShare} disabled={isSharing} hitSlop={12} style={styles.shareButton}>
-          <ShareIcon color={theme.textFaint} size={18} />
-        </Pressable>
+        <View style={styles.headerActions}>
+          <Pressable onPress={handleShare} disabled={isSharing} hitSlop={12} style={styles.shareButton}>
+            <ShareIcon color={theme.textFaint} size={18} />
+          </Pressable>
+
+          {onClose && (
+            <Pressable onPress={onClose} hitSlop={12} style={styles.closeButton}>
+              <Text style={[typography.body, { color: theme.textFaint }]}>✕</Text>
+            </Pressable>
+          )}
+        </View>
       </View>
 
       <Text
@@ -114,7 +123,15 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingRight: spacing.sm,
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   shareButton: {
+    padding: 2,
+  },
+  closeButton: {
     padding: 2,
   },
   storyTitle: {
