@@ -22,6 +22,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: TypeScript check
+        run: npm run typecheck
+
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
@@ -39,14 +42,10 @@ jobs:
       - name: Expo prebuild
         run: npx expo prebuild --platform android --clean
 
-      # Must run after prebuild: --clean wipes and regenerates android/
       - name: Decode keystore
         run: |
           echo "${{ secrets.ANDROID_KEYSTORE_BASE64 }}" | base64 --decode > android/app/sobre.keystore
 
-      # app.json versionCode is ignored by prebuild unless the key is
-      # explicitly set, and --clean above would wipe an edit made before
-      # prebuild anyway — so patch the generated build.gradle instead.
       - name: Set version code
         run: |
           sed -i "s/versionCode [0-9]\+/versionCode ${{ github.run_number }}/" android/app/build.gradle
@@ -58,7 +57,6 @@ jobs:
         working-directory: android
         run: ./gradlew bundleRelease
         env:
-          # Resolved by file() relative to the android/app module
           ANDROID_KEYSTORE_PATH: sobre.keystore
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
