@@ -2,20 +2,18 @@
 
 ## Workflow di Consegna
 
-**Non fare mai `git push` né tentativi di push via MCP GitHub.**
+ChatGPT/Codex può scrivere e fare push direttamente su GitHub quando l'utente richiede o approva l'implementazione.
 
-Il developer (Robertin) lavora esclusivamente via interfacce web e carica i file
-manualmente tramite GitHub web UI. Claude Code deve:
+- Se l'utente indica o approva `main`, è consentito aggiornare direttamente `main`.
+- Se l'utente richiede una PR, usare una branch/PR.
+- Non richiedere ZIP o upload manuale quando è disponibile una connessione GitHub funzionante da ChatGPT/Codex.
+- Dopo ogni push verificare commit risultante e CI/build rilevanti.
+- Segnalare separatamente eventuali migrazioni o configurazioni manuali.
 
-1. Scrivere e committare il codice localmente (`git add` + `git commit`)
-2. Generare uno ZIP con i soli file nuovi/modificati, con il percorso relativo dei file da caricare
-3. Consegnare lo ZIP tramite `SendUserFile`
-4. Spiegare nel messaggio quali file sono nello ZIP e come caricarli su GitHub
+## Regole operative
 
-Non tentare `git push`, `mcp__github__push_files`, né `mcp__github__create_or_update_file`.
-La sessione remota non ha permessi di scrittura verso GitHub — qualsiasi tentativo
-di push restituirà 403 e spreca tempo.
+Leggere sempre `AGENTS.md` prima di modificare il progetto, se presente.
 
 ## Contesto Prodotto
 
-Vedi `CONTEXT.md` per architettura completa, stack tecnico e stato attuale del progetto.
+Vedi `PROJECT_CONTEXT.md` per architettura, stack tecnico, backend contracts, stato attuale e roadmap del progetto.
