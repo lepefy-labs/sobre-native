@@ -43,6 +43,7 @@ export type Database = {
           theme_preference?: ThemePreference
         }
         Update: Partial<Database['public']['Tables']['profiles']['Insert']>
+        Relationships: []
       }
       subscriptions: {
         Row: {
@@ -60,6 +61,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['subscriptions']['Row'], 'id' | 'created_at' | 'updated_at'>
         Update: Partial<Database['public']['Tables']['subscriptions']['Insert']>
+        Relationships: []
       }
       contents: {
         Row: {
@@ -79,6 +81,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['contents']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['contents']['Insert']>
+        Relationships: []
       }
       moods: {
         Row: {
@@ -92,6 +95,7 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['moods']['Row'], 'id' | 'created_at'>
         Update: Partial<Database['public']['Tables']['moods']['Insert']>
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -106,8 +110,10 @@ export type Database = {
         }
         Insert: Omit<Database['public']['Tables']['notifications']['Row'], 'id' | 'sent_at'>
         Update: Partial<Database['public']['Tables']['notifications']['Insert']>
+        Relationships: []
       }
     }
+    Views: Record<string, never>
     Functions: {
       get_today_content: {
         Args: { p_user_id: string; p_slot: NotificationSlot }
@@ -123,7 +129,6 @@ export type Database = {
   }
 }
 
-// Alias utili
 export type Profile = Database['public']['Tables']['profiles']['Row']
 export type Content = Database['public']['Tables']['contents']['Row']
 export type Mood = Database['public']['Tables']['moods']['Row']
