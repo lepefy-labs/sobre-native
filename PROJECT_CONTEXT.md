@@ -16,15 +16,28 @@ As of 30 August 2026:
 - Expo Router 57
 - Node 22.13.1 in CI
 - Android compile/target SDK 36
-- Android release Build #43 succeeded and uploaded a signed AAB
+- Android min SDK 24 (Android 7+)
+- Android release Build #55 succeeded and uploaded the final signed AAB after the primary UI/UX redesign
 
 The temporary Expo-upgrade workflow has been removed.
 
 CI is deliberately split:
 - `.github/workflows/ci.yml` runs automatically on `main`/PR: `npm ci`, reliability tests and typecheck;
-- `.github/workflows/android-build.yml` is manual (`workflow_dispatch`) and is reserved for final release/native validation builds.
+- `.github/workflows/android-build.yml` is manual (`workflow_dispatch`) for ordinary use and also accepts the explicit `.release/android-final` marker path for a deliberate final release build.
 
 This prevents an AAB build from running for every UI or application-code commit.
+
+## Play device compatibility baseline
+The published Expo 57 build shows fewer supported devices than the previous Expo 51 release. This is expected primarily because:
+- Expo SDK 51 supported Android 6+;
+- Expo SDK 57 supports Android 7+;
+- the final AAB declares `minSdkVersion=24`, `targetSdkVersion=36`;
+- the AAB contains `arm64-v8a`, `armeabi-v7a`, `x86`, and `x86_64` native libraries;
+- inspection of the final base manifest found no mandatory `uses-feature` hardware declaration that would accidentally require camera, GPS, NFC, telephony, or similar hardware.
+
+Google Play reported approximately 1,038 fewer supported phone models, 152 fewer tablets, and one fewer TV model compared with the previous release. Treat these warnings as an expected SDK support-floor change unless Play's device-catalog detail shows a different exclusion reason.
+
+Do not force `minSdkVersion` back to API 23 solely to recover Android 6 devices: that would put the project outside the supported Expo SDK 57 / React Native 0.86 platform baseline.
 
 ## Current stack
 - Expo SDK 57
@@ -191,6 +204,7 @@ Automated integration/E2E coverage is still limited. After the UI/UX pass, expan
 - scheme: `sobre`
 - iOS bundle ID: `com.lepefylabs.sobre`
 - Android package: `com.lepefylabs.sobre`
+- Android min SDK: 24
 - Android compile/target SDK: 36
 - CI Node: 22.13.1
 
@@ -215,21 +229,16 @@ Automated integration/E2E coverage is still limited. After the UI/UX pass, expan
 - home/content/mood
 - archive
 - profile/settings
+- final Android release Build #55
 
-### Next — UI/UX validation and polish
-- verify compact Android devices and larger screens;
-- accessibility/touch-target pass;
-- empty/error/loading state visual review;
-- real-device visual smoke test;
-- only then run one final Android release build.
-
-### Then — Critical backend/platform closure
+### Next — Critical backend/platform closure
 - choose OneSignal-native vs Expo Push architecture and implement end-to-end
 - harden `get_today_content` and notifications update policy
 - Stripe redirect allowlisting / request validation
 - iOS parity: profile time picker, push, deep links, payments, TestFlight build
 
 ### Store readiness
+- real-device visual smoke tests
 - privacy/data disclosures
 - metadata/screenshots
 - closed testing
