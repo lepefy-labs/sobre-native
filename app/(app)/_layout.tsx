@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Tabs } from 'expo-router'
+import { Platform } from 'react-native'
 import { getT, getLangFromStorage } from '@/lib/i18n'
 import { useTheme } from '@/hooks/useTheme'
 import { useProfile } from '@/hooks/useProfile'
@@ -15,8 +16,6 @@ export default function AppLayout() {
     getLangFromStorage().then(setStoredLang)
   }, [])
 
-  // profile.lang (Supabase) is the single source of truth once authenticated;
-  // AsyncStorage only covers the brief window before the profile has loaded.
   const lang: ContentLang = profile?.lang ?? storedLang ?? 'it'
   const t = getT(lang)
 
@@ -26,9 +25,26 @@ export default function AppLayout() {
         headerShown: false,
         tabBarActiveTintColor: theme.text,
         tabBarInactiveTintColor: theme.textFaint,
+        tabBarHideOnKeyboard: true,
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '500',
+          marginTop: 3,
+        },
+        tabBarItemStyle: {
+          paddingVertical: 7,
+        },
         tabBarStyle: {
+          height: Platform.OS === 'ios' ? 86 : 70,
+          paddingTop: 4,
           backgroundColor: theme.surface,
+          borderTopWidth: 1,
           borderTopColor: theme.borderSubtle,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -4 },
+          shadowOpacity: 0.04,
+          shadowRadius: 12,
+          elevation: 10,
         },
       }}
     >
@@ -36,21 +52,21 @@ export default function AppLayout() {
         name="home"
         options={{
           title: t.dashboard.nav.home,
-          tabBarIcon: ({ color }) => <TabHomeIcon color={color} />,
+          tabBarIcon: ({ color }) => <TabHomeIcon color={color} size={22} />,
         }}
       />
       <Tabs.Screen
         name="archive"
         options={{
           title: t.dashboard.nav.archive,
-          tabBarIcon: ({ color }) => <TabArchiveIcon color={color} />,
+          tabBarIcon: ({ color }) => <TabArchiveIcon color={color} size={22} />,
         }}
       />
       <Tabs.Screen
         name="profile"
         options={{
           title: t.dashboard.nav.profile,
-          tabBarIcon: ({ color }) => <TabProfileIcon color={color} />,
+          tabBarIcon: ({ color }) => <TabProfileIcon color={color} size={22} />,
         }}
       />
     </Tabs>
