@@ -18,13 +18,11 @@ export async function verifyOtp(
   token: string
 ): Promise<{ error: string | null; session: Session | null }> {
   const cleanToken = token.trim()
-  console.log('verifyOtp request:', JSON.stringify({ email, token: cleanToken }))
   const { data, error } = await supabase.auth.verifyOtp({
     email,
     token: cleanToken,
     type: 'email',
   })
-  console.log('verifyOtp result:', JSON.stringify(data), JSON.stringify(error))
   if (!error && data.session) {
     const { error: sessionError } = await supabase.auth.setSession({
       access_token: data.session.access_token,
