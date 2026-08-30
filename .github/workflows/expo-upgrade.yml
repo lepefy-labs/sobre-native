@@ -94,11 +94,6 @@ jobs:
           fs.writeFileSync('lib/notifications.ts', notifications)
 
           fs.writeFileSync('global.d.ts', "declare module '*.css'\n")
-
-          const androidWorkflowPath = '.github/workflows/android-build.yml'
-          let androidWorkflow = fs.readFileSync(androidWorkflowPath, 'utf8')
-          androidWorkflow = androidWorkflow.replace(/node-version:\s*['\"]?20(?:\.\d+(?:\.\d+)?)?['\"]?/g, "node-version: '22.13.1'")
-          fs.writeFileSync(androidWorkflowPath, androidWorkflow)
           NODE
 
           npm pkg delete scripts.postinstall
@@ -143,7 +138,7 @@ jobs:
 
           git status --short > upgrade-report/git-status.txt
           git diff --stat > upgrade-report/diff-stat.txt
-          git diff -- package.json package-lock.json app.json tsconfig.json app/ components/ lib/ global.d.ts patches/ .github/workflows/android-build.yml > upgrade-report/upgrade.patch
+          git diff -- package.json package-lock.json app.json tsconfig.json app/ components/ lib/ global.d.ts patches/ > upgrade-report/upgrade.patch
 
           echo >> upgrade-report/upgrade-status.txt
           echo "Expo 57 candidate generation completed." | tee -a upgrade-report/upgrade-status.txt
@@ -180,8 +175,7 @@ jobs:
             components/domain/ArchiveListItem.tsx \
             components/domain/MoodCheckin.tsx \
             components/ui/icons/types.ts \
-            lib/notifications.ts \
-            .github/workflows/android-build.yml
+            lib/notifications.ts
           git add -u patches/expo-modules-core+1.12.26.patch
           git diff --cached --check
           git commit -m "Upgrade Sobre Native to Expo SDK 57"
