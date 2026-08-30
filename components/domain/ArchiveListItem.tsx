@@ -18,7 +18,7 @@ import type { ArchiveEntry } from '@/hooks/useArchive'
 import type { ThemeColors } from '@/constants/theme'
 import type { ContentType, MoodValue } from '@/types/database'
 
-const BODY_PREVIEW_LIMIT = 80
+const BODY_PREVIEW_LIMIT = 88
 
 const TYPE_ICONS: Record<ContentType, (props: IconProps) => JSX.Element> = {
   thought: ContentThoughtIcon,
@@ -73,23 +73,33 @@ export function ArchiveListItem({ entry, timezone, onPress }: ArchiveListItemPro
   return (
     <Pressable
       onPress={onPress}
-      style={[styles.row, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}
+      style={({ pressed }) => [
+        styles.row,
+        { backgroundColor: theme.surface, borderColor: theme.borderSubtle, opacity: pressed ? 0.78 : 1 },
+      ]}
+      accessibilityRole="button"
     >
-      <View style={styles.iconCol}>
-        <TypeIcon color={theme.textFaint} size={18} />
+      <View style={[styles.iconCol, { backgroundColor: theme.surfaceMuted }]}> 
+        <TypeIcon color={theme.textMuted} size={18} />
       </View>
 
-      {MoodIcon && moodColor && (
-        <View style={styles.moodCol}>
-          <MoodIcon color={moodColor} size={14} />
+      <View style={styles.contentCol}>
+        <Text style={[typography.body, styles.label, { color: theme.textSecondary }]} numberOfLines={2}>
+          {label}
+        </Text>
+        <View style={styles.metaRow}>
+          {MoodIcon && moodColor && (
+            <View style={styles.moodMeta}>
+              <MoodIcon color={moodColor} size={13} />
+            </View>
+          )}
+          <Text style={[typography.caption, { color: theme.textFaint }]}>
+            {formatTime(entry.sentAt, timezone)}
+          </Text>
         </View>
-      )}
+      </View>
 
-      <Text style={[typography.body, styles.label, { color: theme.textSecondary }]} numberOfLines={1}>
-        {label}
-      </Text>
-
-      <Text style={[typography.caption, styles.time, { color: theme.textFaint }]}>{formatTime(entry.sentAt, timezone)}</Text>
+      <Text style={[styles.chevron, { color: theme.textFaint }]}>›</Text>
     </Pressable>
   )
 }
@@ -99,23 +109,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     paddingVertical: spacing.md,
     paddingHorizontal: spacing.md,
     marginBottom: spacing.sm,
+    gap: spacing.md,
   },
   iconCol: {
-    marginRight: spacing.sm,
+    width: 42,
+    height: 42,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  moodCol: {
-    marginRight: spacing.sm,
+  contentCol: {
+    flex: 1,
   },
   label: {
-    flex: 1,
-    marginRight: spacing.sm,
+    lineHeight: 21,
   },
-  time: {
-    minWidth: 44,
-    textAlign: 'right',
+  metaRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    marginTop: 5,
+  },
+  moodMeta: {
+    marginRight: 2,
+  },
+  chevron: {
+    fontSize: 24,
+    lineHeight: 26,
   },
 })
