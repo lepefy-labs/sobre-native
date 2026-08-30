@@ -25,6 +25,12 @@ jobs:
           node-version: '22.13.1'
           cache: 'npm'
 
+      - name: Pin Expo 57 web peers
+        run: |
+          set -euo pipefail
+          npm pkg set dependencies.react-dom=19.2.3
+          npm pkg set dependencies.react-native-web='~0.21.0'
+
       - name: Regenerate lockfile from package.json
         run: |
           set -euo pipefail
@@ -49,16 +55,16 @@ jobs:
       - name: Android prebuild validation
         run: npx expo prebuild --platform android --clean --no-install
 
-      - name: Commit repaired lockfile
+      - name: Commit repaired dependency manifest and lockfile
         run: |
           set -euo pipefail
-          git diff --check -- package-lock.json
-          if git diff --quiet -- package-lock.json; then
-            echo 'package-lock.json already valid; nothing to commit.'
+          git diff --check -- package.json package-lock.json
+          if git diff --quiet -- package.json package-lock.json; then
+            echo 'Dependency manifest and lockfile already valid; nothing to commit.'
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add package-lock.json
-          git commit -m "Repair Expo 57 package lockfile"
+          git add package.json package-lock.json
+          git commit -m "Align Expo 57 web peer dependencies"
           git push origin HEAD:main
