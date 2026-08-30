@@ -2,9 +2,10 @@ import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { getLangFromStorage } from '@/lib/i18n'
+import { getDateStringForTimezone, getSlotForTimezone } from '@/lib/domain/time'
 import { useAuth } from './useAuth'
 import { useProfile } from './useProfile'
-import type { ContentLang, ContentType, MoodValue, NotificationSlot } from '@/types/database'
+import type { ContentLang, ContentType, MoodValue } from '@/types/database'
 
 export type HomeContent = {
   type: ContentType
@@ -13,17 +14,8 @@ export type HomeContent = {
   tags: string[]
 }
 
-export function getSlotForTimezone(timezone: string): NotificationSlot {
-  const parts = new Intl.DateTimeFormat('en-US', { hour: 'numeric', hourCycle: 'h23', timeZone: timezone }).formatToParts(
-    new Date()
-  )
-  const hour = Number(parts.find((part) => part.type === 'hour')?.value ?? '0')
-  return hour >= 5 && hour < 18 ? 'morning' : 'evening'
-}
-
-export function getTodayDateString(timezone: string): string {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: timezone }).format(new Date())
-}
+export const getTodayDateString = getDateStringForTimezone
+export { getSlotForTimezone }
 
 export function useHomeData() {
   const { user } = useAuth()
