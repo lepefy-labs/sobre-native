@@ -79,7 +79,7 @@ export default function HomeScreen() {
   return (
     <View style={[styles.safe, { backgroundColor: theme.bg }]}>
       <LinearGradient colors={backgroundGradient} style={[StyleSheet.absoluteFill, styles.backgroundWash]} />
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.scrollWrap}>
           <ScrollView
             contentContainerStyle={styles.scroll}
@@ -87,13 +87,17 @@ export default function HomeScreen() {
             onContentSizeChange={handleContentSizeChange}
             onScroll={handleScroll}
             scrollEventThrottle={16}
+            showsVerticalScrollIndicator={false}
           >
             <View style={styles.hero}>
-              <Text
-                style={[typography.caption, styles.greeting, { fontFamily: fonts.serif.regular, color: theme.textFaint }]}
-              >
-                {greeting.toUpperCase()}
-              </Text>
+              <View style={[styles.eyebrowPill, { backgroundColor: theme.surface }]}> 
+                <Text
+                  style={[typography.caption, styles.greeting, { fontFamily: fonts.serif.regular, color: theme.textMuted }]}
+                >
+                  {greeting.toUpperCase()}
+                </Text>
+              </View>
+
               {userName && (
                 <Text style={[typography.display, styles.name, { fontFamily: fonts.serif.light, color: theme.text }]}>
                   {userName}
@@ -122,10 +126,9 @@ export default function HomeScreen() {
               )}
             </View>
 
-            <View style={styles.spacer} />
-
             <View style={styles.footer}>
-              <Text style={[typography.caption, styles.footerText, { color: theme.textFootnote }]}>
+              <View style={[styles.footerLine, { backgroundColor: theme.border }]} />
+              <Text style={[typography.caption, styles.footerText, { color: theme.textFaint }]}>
                 {t.dashboard.home.footerPayoff}
               </Text>
             </View>
@@ -181,13 +184,13 @@ function HomeSkeleton() {
   }, [opacity])
 
   return (
-    <View style={styles.card}>
-      <Animated.View style={[styles.skeletonBlock, { height: 80, opacity, backgroundColor: theme.surfaceMuted }]} />
+    <View style={[styles.skeletonCard, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}> 
+      <Animated.View style={[styles.skeletonBlock, { height: 92, opacity, backgroundColor: theme.surfaceMuted }]} />
       <Animated.View
-        style={[styles.skeletonBlock, { height: 20, width: '60%', opacity, backgroundColor: theme.surfaceMuted }]}
+        style={[styles.skeletonBlock, { height: 20, width: '68%', opacity, backgroundColor: theme.surfaceMuted }]}
       />
       <Animated.View
-        style={[styles.skeletonBlock, { height: 20, width: '40%', opacity, backgroundColor: theme.surfaceMuted }]}
+        style={[styles.skeletonBlock, { height: 20, width: '44%', opacity, backgroundColor: theme.surfaceMuted }]}
       />
     </View>
   )
@@ -198,7 +201,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backgroundWash: {
-    opacity: 0.4,
+    opacity: 0.62,
   },
   scrollWrap: {
     flex: 1,
@@ -208,32 +211,34 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     bottom: 0,
-    height: 40,
+    height: 28,
   },
   scroll: {
     flexGrow: 1,
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
+    paddingBottom: spacing.xxl,
   },
   hero: {
-    marginTop: 24,
+    marginTop: spacing.sm,
+    marginBottom: spacing.xl,
+    alignItems: 'flex-start',
   },
-  middle: {
-    marginTop: 32,
-  },
-  spacer: {
-    flex: 1,
-  },
-  footer: {
-    alignItems: 'center',
-    marginBottom: 20,
+  eyebrowPill: {
+    borderRadius: radius.full,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
   },
   greeting: {
-    textTransform: 'uppercase',
-    letterSpacing: 3,
+    letterSpacing: 2.2,
   },
   name: {
-    marginTop: spacing.xs,
+    marginTop: spacing.md,
+    fontSize: 40,
+    lineHeight: 46,
+  },
+  middle: {
+    gap: spacing.lg,
   },
   card: {
     gap: spacing.sm,
@@ -241,21 +246,37 @@ const styles = StyleSheet.create({
   emptyCard: {
     alignItems: 'center',
     gap: spacing.md,
+    borderRadius: radius.xl,
   },
   breatheMark: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 42,
+    height: 42,
+    borderRadius: 21,
     borderWidth: 1.5,
   },
   emptyText: {
     textAlign: 'center',
   },
   moodWrap: {
-    marginTop: spacing.xl,
+    marginTop: 0,
+  },
+  footer: {
+    alignItems: 'center',
+    marginTop: spacing.xxl,
+    gap: spacing.md,
+  },
+  footerLine: {
+    width: 32,
+    height: 1,
   },
   footerText: {
     textAlign: 'center',
+    letterSpacing: 0.4,
+  },
+  skeletonCard: {
+    borderWidth: 1,
+    borderRadius: radius.xl,
+    padding: spacing.lg,
   },
   skeletonBlock: {
     borderRadius: radius.md,
