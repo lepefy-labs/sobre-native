@@ -23,28 +23,28 @@ export default function AppLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: theme.text,
+        tabBarActiveTintColor: theme.accent,
         tabBarInactiveTintColor: theme.textFaint,
         tabBarHideOnKeyboard: true,
         tabBarLabelStyle: {
           fontSize: 11,
-          fontWeight: '500',
-          marginTop: 3,
+          fontWeight: '600',
+          marginTop: 2,
         },
         tabBarItemStyle: {
           paddingVertical: 7,
         },
         tabBarStyle: {
-          height: Platform.OS === 'ios' ? 86 : 70,
-          paddingTop: 4,
+          height: Platform.OS === 'ios' ? 86 : 72,
+          paddingTop: 5,
           backgroundColor: theme.surface,
           borderTopWidth: 1,
           borderTopColor: theme.borderSubtle,
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: -4 },
-          shadowOpacity: 0.04,
-          shadowRadius: 12,
-          elevation: 10,
+          shadowOffset: { width: 0, height: -6 },
+          shadowOpacity: 0.055,
+          shadowRadius: 16,
+          elevation: 12,
         },
       }}
     >
