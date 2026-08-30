@@ -79,6 +79,7 @@ export default function HomeScreen() {
   return (
     <View style={[styles.safe, { backgroundColor: theme.bg }]}>
       <LinearGradient colors={backgroundGradient} style={[StyleSheet.absoluteFill, styles.backgroundWash]} />
+      <View style={[styles.glow, { backgroundColor: theme.accentSoft }]} pointerEvents="none" />
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.scrollWrap}>
           <ScrollView
@@ -91,9 +92,7 @@ export default function HomeScreen() {
           >
             <View style={styles.hero}>
               <View style={[styles.eyebrowPill, { backgroundColor: theme.surface }]}> 
-                <Text
-                  style={[typography.caption, styles.greeting, { fontFamily: fonts.serif.regular, color: theme.textMuted }]}
-                >
+                <Text style={[typography.caption, styles.greeting, { fontFamily: fonts.serif.regular, color: theme.textMuted }]}>
                   {greeting.toUpperCase()}
                 </Text>
               </View>
@@ -103,6 +102,7 @@ export default function HomeScreen() {
                   {userName}
                 </Text>
               )}
+              <View style={[styles.heroRule, { backgroundColor: theme.accent }]} />
             </View>
 
             <View style={styles.middle}>
@@ -159,12 +159,7 @@ function BreathingMark() {
   }, [scale, opacity])
 
   return (
-    <Animated.View
-      style={[
-        styles.breatheMark,
-        { borderColor: theme.accent, transform: [{ scale }], opacity },
-      ]}
-    />
+    <Animated.View style={[styles.breatheMark, { borderColor: theme.accent, transform: [{ scale }], opacity }]} />
   )
 }
 
@@ -186,12 +181,8 @@ function HomeSkeleton() {
   return (
     <View style={[styles.skeletonCard, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}> 
       <Animated.View style={[styles.skeletonBlock, { height: 92, opacity, backgroundColor: theme.surfaceMuted }]} />
-      <Animated.View
-        style={[styles.skeletonBlock, { height: 20, width: '68%', opacity, backgroundColor: theme.surfaceMuted }]}
-      />
-      <Animated.View
-        style={[styles.skeletonBlock, { height: 20, width: '44%', opacity, backgroundColor: theme.surfaceMuted }]}
-      />
+      <Animated.View style={[styles.skeletonBlock, { height: 20, width: '68%', opacity, backgroundColor: theme.surfaceMuted }]} />
+      <Animated.View style={[styles.skeletonBlock, { height: 20, width: '44%', opacity, backgroundColor: theme.surfaceMuted }]} />
     </View>
   )
 }
@@ -201,7 +192,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   backgroundWash: {
-    opacity: 0.62,
+    opacity: 0.72,
+  },
+  glow: {
+    position: 'absolute',
+    width: 260,
+    height: 260,
+    borderRadius: 130,
+    top: -110,
+    right: -90,
+    opacity: 0.12,
   },
   scrollWrap: {
     flex: 1,
@@ -234,8 +234,15 @@ const styles = StyleSheet.create({
   },
   name: {
     marginTop: spacing.md,
-    fontSize: 40,
-    lineHeight: 46,
+    fontSize: 42,
+    lineHeight: 48,
+  },
+  heroRule: {
+    width: 44,
+    height: 2,
+    borderRadius: 1,
+    marginTop: spacing.md,
+    opacity: 0.75,
   },
   middle: {
     gap: spacing.lg,
