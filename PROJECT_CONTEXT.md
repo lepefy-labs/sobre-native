@@ -5,27 +5,34 @@ Repository: `lepefy-labs/sobre-native`
 Primary branch: `main`
 Mobile version: `1.0.0`
 
-Sobre Native is the React Native replacement for the previous Capacitor frontend.
-The existing backend is reused rather than duplicated.
+Sobre Native is the React Native replacement for the previous Capacitor frontend. The existing Supabase/Stripe/content backend is reused rather than duplicated.
 
-Baseline inspected before this foundation update:
-- latest `main` commit: `c5f80b51448bf66d96a4c97b32bd0db7f4303021`
-- commit date: 5 July 2026
-- corresponding Android Build workflow: successful release AAB
+## Current validated baseline
+As of 30 August 2026:
+- Expo SDK 57
+- React Native 0.86.3
+- React 19.2.3
+- TypeScript 6.0.x
+- Expo Router 57
+- Node 22.13.1 in CI
+- Android compile/target SDK 36
+- Android release Build #43 succeeded and uploaded a signed AAB
+
+The temporary Expo-upgrade workflow has been removed. `.github/workflows/android-build.yml` is the authoritative Android release CI.
 
 ## Current stack
-- Expo SDK 51
-- React Native 0.74
-- React 18.2
-- Expo Router 3
-- TypeScript
+- Expo SDK 57
+- React Native 0.86.3
+- React 19.2.3
+- Expo Router 57
+- TypeScript 6
 - TanStack React Query
 - Supabase JS
 - Expo Notifications
 - Expo Secure Store
 - Expo Web Browser / Auth Session
 - NativeWind 4
-- Reanimated / Gesture Handler
+- Reanimated 4 + React Native Worklets
 
 ## Routes
 Authentication:
@@ -48,7 +55,6 @@ Payment returns:
 Startup routing resolves language, session, onboarding completion, then home.
 
 ## Implemented product capabilities
-
 ### Home
 - morning/evening slot derived from user timezone
 - current mood lookup
@@ -79,11 +85,14 @@ Startup routing resolves language, session, onboarding completion, then home.
 - privacy/terms
 - logout
 
-Known gap: notification time picker is Android-only in current source.
+Known platform gap: notification time picker remains Android-only.
 
-## Backend contracts
+## Backend source of truth
+The backend contracts are implemented primarily in:
+- `lepefy-labs/sobre-app` — Supabase migrations/functions + legacy web/Capacitor app
+- `lepefy-labs/sobre-batch` — Railway content generation and notification sender
 
-Tables used directly:
+Tables used by native:
 - `profiles`
 - `moods`
 - `contents`
@@ -96,105 +105,88 @@ Edge Functions:
 - `create-checkout`
 - `create-portal-session`
 
-The authoritative DB schema/RLS/backend code is not stored in this repo, so backend contract
-changes must be verified at the backend source before implementation.
+Always inspect those authoritative repos before changing backend contracts.
 
-## Notifications
-`lib/notifications.ts` requests permission, creates the Android channel, obtains an Expo
-Push Token and saves it in `profiles.onesignal_player_id`.
+## Foundation audit findings
+Detailed report: `docs/FOUNDATION_AUDIT.md`.
 
-This appears to be legacy naming from a previous OneSignal architecture. Audit the full
-sender/token flow before renaming or migrating it.
+### Authentication
+Sensitive OTP/session debug logging was removed from `lib/auth.ts`. No authentication semantics changed.
 
-Recommended target: dedicated multi-device token storage with provider, platform,
-lifecycle/revocation and deep-link metadata.
+### Push — production blocker
+Native currently obtains an Expo Push Token and writes it into `profiles.onesignal_player_id`.
 
-## Payments
-Stripe checkout and customer portal are backend-owned via Supabase functions.
-Mobile return URLs use the `sobre://` scheme.
-Subscription truth must remain backend-owned.
+Production `sobre-batch/notify.js` is still a OneSignal sender using `include_player_ids`. Expo Push Tokens and OneSignal player/subscription IDs are incompatible.
+
+Do not rename fields or switch provider without explicit architecture approval. Push is not production-ready until one coherent provider/storage path is chosen.
+
+### Supabase hardening findings
+The legacy schema has RLS enabled and owner-scoped policies, but:
+- `get_today_content` is `SECURITY DEFINER` and accepts `p_user_id` without an explicit `auth.uid()` check;
+- the notifications update policy is row-scoped but does not technically restrict changes to `opened_at` only.
+
+These require a dedicated backend migration in `sobre-app`; none was applied during the native foundation pass.
+
+### Stripe hardening findings
+Checkout/portal authenticate the bearer token and scope customer lookup to the authenticated user. A later backend pass should allowlist plan and redirect/return URLs and harden malformed Authorization handling. Payment semantics were not changed.
+
+## Reliability baseline
+`lib/domain/time.ts` contains pure timezone/archive date logic.
+
+`tests/time.test.mjs` covers:
+- timezone-sensitive slot selection;
+- 05:00/18:00 slot boundaries;
+- timezone date boundaries;
+- leap-year/month-end subtraction;
+- archive initial windows;
+- six-month pagination cutoff.
+
+An archive date bug caused by `Date.setUTCMonth()` rollover was fixed using calendar-safe month subtraction.
+
+Android CI now runs:
+1. `npm ci`
+2. `npm test`
+3. `npm run typecheck`
+4. Android native setup/prebuild
+5. signed `bundleRelease`
+6. AAB upload
+
+Automated integration/E2E coverage is still limited. After UI/UX work, expand coverage to data hooks and auth → onboarding/session restore → mood → home.
 
 ## Native configuration
 - scheme: `sobre`
 - iOS bundle ID: `com.lepefylabs.sobre`
 - Android package: `com.lepefylabs.sobre`
-- current Android compile/target SDK override: 35
+- Android compile/target SDK: 36
+- CI Node: 22.13.1
 
-Current Android CI:
-- Node 20
-- `npm ci`
-- Expo prebuild
-- signing keystore restoration
-- GitHub run number -> Android versionCode
-- release AAB build
-- artifact upload
-
-## CI gaps
-- TypeScript check was not part of the existing release workflow
-- automated tests are not established
-- `lint` exists in package scripts, but a verified ESLint setup was not found
-
-Foundation Phase 1 adds TypeScript checking before native build.
-
-## Modernization target
-As of August 2026 Expo SDK 57 is current and requires:
-- React Native 0.86
-- React 19.2.x
-- Node 22.13+ minimum
-- Android compile/target SDK 36
-
-Do not manually change only package versions. Target procedure:
-1. move CI/runtime to Node 22.13+
-2. install SDK 57
-3. `npx expo install --fix`
-4. `npx expo-doctor`
-5. review SDK 51→57 changes
-6. regenerate native projects
-7. update lockfile
-8. typecheck
-9. release build
-10. smoke-test auth/onboarding/mood/home/archive/push/Stripe
-11. bring iOS to parity
-
-## Roadmap
-### Phase 1 — Foundation
-- `AGENTS.md`
-- this context
-- fix obsolete context reference
+## Current roadmap
+### Completed — Foundation + Expo modernization
+- repository operating rules/context
 - TypeScript CI gate
-
-### Phase 2 — Expo modernization
 - SDK 51 → 57
-- Node 22.13+
+- React/RN dependency alignment
+- clean lockfile
+- Node 22
 - Android API 36
-- dependency alignment and lockfile
-- Expo Doctor clean
-- Android AAB
+- Expo prebuild
+- signed release AAB
+- foundation/backend audit
+- first reliability unit tests
 
-### Phase 3 — Backend/mobile audit
-- auth lifecycle
-- RLS
-- content RPC
-- push sender/token compatibility
-- Stripe checkout/portal
-- deep-link returns
+### Next — UI/UX pass
+Use current `main` as source of truth and improve the product experience without regressing the validated native foundation.
 
-### Phase 4 — Reliability
-- unit tests for timezone/slot/date logic
-- integration tests for data hooks
-- critical E2E paths
-- error/offline/session-expiry states
+### Then — Critical backend/platform closure
+- choose OneSignal-native vs Expo Push architecture and implement end-to-end
+- harden `get_today_content` and notifications update policy
+- Stripe redirect allowlisting / request validation
+- iOS parity: time picker, push, deep links, payments, TestFlight build
 
-### Phase 5 — iOS parity
-- time picker
-- push
-- deep links
-- payments
-- build/TestFlight pipeline
-
-### Phase 6 — Store readiness
+### Store readiness
+- real-device smoke tests
 - privacy/data disclosures
 - metadata/screenshots
-- signing/closed testing
+- closed testing
 - crash/analytics monitoring
 - Play Store/App Store release checklist
