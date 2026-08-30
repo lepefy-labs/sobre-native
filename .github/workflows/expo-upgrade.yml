@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   upgrade-candidate:
@@ -94,6 +94,11 @@ jobs:
           fs.writeFileSync('lib/notifications.ts', notifications)
 
           fs.writeFileSync('global.d.ts', "declare module '*.css'\n")
+
+          const androidWorkflowPath = '.github/workflows/android-build.yml'
+          let androidWorkflow = fs.readFileSync(androidWorkflowPath, 'utf8')
+          androidWorkflow = androidWorkflow.replace(/node-version:\s*['\"]?20(?:\.\d+(?:\.\d+)?)?['\"]?/g, "node-version: '22.13.1'")
+          fs.writeFileSync(androidWorkflowPath, androidWorkflow)
           NODE
 
           npm pkg delete scripts.postinstall
@@ -138,29 +143,10 @@ jobs:
 
           git status --short > upgrade-report/git-status.txt
           git diff --stat > upgrade-report/diff-stat.txt
-          git diff -- package.json package-lock.json app.json tsconfig.json app/ components/ lib/ global.d.ts patches/ > upgrade-report/upgrade.patch
-
-          for file in \
-            package.json package-lock.json app.json tsconfig.json global.d.ts \
-            'app/(app)/archive.tsx' \
-            components/domain/ArchiveListItem.tsx \
-            components/domain/MoodCheckin.tsx \
-            components/ui/icons/types.ts \
-            lib/notifications.ts; do
-            if [ -f "$file" ]; then
-              if ! git diff --quiet -- "$file" || [ "$file" = "global.d.ts" ]; then
-                mkdir -p "upgrade-report/candidate/$(dirname "$file")"
-                cp "$file" "upgrade-report/candidate/$file"
-              fi
-            fi
-          done
-
-          if [ ! -f patches/expo-modules-core+1.12.26.patch ]; then
-            echo 'patches/expo-modules-core+1.12.26.patch' > upgrade-report/candidate/deleted-files.txt
-          fi
+          git diff -- package.json package-lock.json app.json tsconfig.json app/ components/ lib/ global.d.ts patches/ .github/workflows/android-build.yml > upgrade-report/upgrade.patch
 
           echo >> upgrade-report/upgrade-status.txt
-          echo "Expo 57 candidate generation completed. Non-zero checks are preserved for review." | tee -a upgrade-report/upgrade-status.txt
+          echo "Expo 57 candidate generation completed." | tee -a upgrade-report/upgrade-status.txt
           exit 0
 
       - name: Show candidate summary
@@ -172,7 +158,36 @@ jobs:
           echo '--- diff stat ---'
           cat upgrade-report/diff-stat.txt || true
 
-      - name: Upload Expo 57 candidate
+      - name: Require all Expo 57 gates
+        run: |
+          set -euo pipefail
+          for gate in install_expo_57 expo_install_fix install_worklets expo_install_check expo_doctor typecheck prebuild_android; do
+            grep -qx "${gate}=0" upgrade-report/upgrade-status.txt
+          done
+
+      - name: Promote validated Expo 57 migration to main
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add \
+            app.json \
+            package.json \
+            package-lock.json \
+            tsconfig.json \
+            global.d.ts \
+            'app/(app)/archive.tsx' \
+            components/domain/ArchiveListItem.tsx \
+            components/domain/MoodCheckin.tsx \
+            components/ui/icons/types.ts \
+            lib/notifications.ts \
+            .github/workflows/android-build.yml
+          git add -u patches/expo-modules-core+1.12.26.patch
+          git diff --cached --check
+          git commit -m "Upgrade Sobre Native to Expo SDK 57"
+          git push origin HEAD:main
+
+      - name: Upload Expo 57 report
         if: always()
         uses: actions/upload-artifact@v4
         with:
