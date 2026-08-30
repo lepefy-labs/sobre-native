@@ -18,7 +18,13 @@ As of 30 August 2026:
 - Android compile/target SDK 36
 - Android release Build #43 succeeded and uploaded a signed AAB
 
-The temporary Expo-upgrade workflow has been removed. `.github/workflows/android-build.yml` is the authoritative Android release CI.
+The temporary Expo-upgrade workflow has been removed.
+
+CI is deliberately split:
+- `.github/workflows/ci.yml` runs automatically on `main`/PR: `npm ci`, reliability tests and typecheck;
+- `.github/workflows/android-build.yml` is manual (`workflow_dispatch`) and is reserved for final release/native validation builds.
+
+This prevents an AAB build from running for every UI or application-code commit.
 
 ## Current stack
 - Expo SDK 57
@@ -85,7 +91,32 @@ Startup routing resolves language, session, onboarding completion, then home.
 - privacy/terms
 - logout
 
-Known platform gap: notification time picker remains Android-only.
+Known platform gap: onboarding exposes an iOS time picker, while profile notification-time editing still only invokes the Android picker path.
+
+## UI/UX baseline — redesigned August 2026
+The primary product flow has been visually redesigned without changing business semantics.
+
+Design direction:
+- warm stone + amber palette;
+- Fraunces reserved for editorial/display moments;
+- larger radii and calmer surfaces;
+- stronger hierarchy between primary content and secondary metadata;
+- reduced admin/form-like appearance;
+- coherent light/dark treatment.
+
+Updated surfaces:
+- language selection;
+- login;
+- OTP verification;
+- onboarding;
+- bottom navigation shell;
+- home;
+- daily content card;
+- mood check-in;
+- archive filters/list/detail entry points;
+- profile/settings/subscription surfaces.
+
+The redesign intentionally preserves existing routes, Supabase reads/writes, Stripe calls and product copy.
 
 ## Backend source of truth
 The backend contracts are implemented primarily in:
@@ -143,15 +174,18 @@ Checkout/portal authenticate the bearer token and scope customer lookup to the a
 
 An archive date bug caused by `Date.setUTCMonth()` rollover was fixed using calendar-safe month subtraction.
 
-Android CI now runs:
+Automatic CI now runs:
 1. `npm ci`
 2. `npm test`
 3. `npm run typecheck`
-4. Android native setup/prebuild
-5. signed `bundleRelease`
-6. AAB upload
 
-Automated integration/E2E coverage is still limited. After UI/UX work, expand coverage to data hooks and auth → onboarding/session restore → mood → home.
+Manual Android release validation runs:
+1. the same install/test/typecheck gates;
+2. Android native setup/prebuild;
+3. signed `bundleRelease`;
+4. AAB upload.
+
+Automated integration/E2E coverage is still limited. After the UI/UX pass, expand coverage to data hooks and auth → onboarding/session restore → mood → home.
 
 ## Native configuration
 - scheme: `sobre`
@@ -163,7 +197,6 @@ Automated integration/E2E coverage is still limited. After UI/UX work, expand co
 ## Current roadmap
 ### Completed — Foundation + Expo modernization
 - repository operating rules/context
-- TypeScript CI gate
 - SDK 51 → 57
 - React/RN dependency alignment
 - clean lockfile
@@ -173,18 +206,30 @@ Automated integration/E2E coverage is still limited. After UI/UX work, expand co
 - signed release AAB
 - foundation/backend audit
 - first reliability unit tests
+- lightweight automatic CI / manual Android AAB split
 
-### Next — UI/UX pass
-Use current `main` as source of truth and improve the product experience without regressing the validated native foundation.
+### Completed — Primary UI/UX redesign
+- auth entry screens
+- onboarding
+- navigation shell
+- home/content/mood
+- archive
+- profile/settings
+
+### Next — UI/UX validation and polish
+- verify compact Android devices and larger screens;
+- accessibility/touch-target pass;
+- empty/error/loading state visual review;
+- real-device visual smoke test;
+- only then run one final Android release build.
 
 ### Then — Critical backend/platform closure
 - choose OneSignal-native vs Expo Push architecture and implement end-to-end
 - harden `get_today_content` and notifications update policy
 - Stripe redirect allowlisting / request validation
-- iOS parity: time picker, push, deep links, payments, TestFlight build
+- iOS parity: profile time picker, push, deep links, payments, TestFlight build
 
 ### Store readiness
-- real-device smoke tests
 - privacy/data disclosures
 - metadata/screenshots
 - closed testing
