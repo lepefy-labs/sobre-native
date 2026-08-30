@@ -101,15 +101,11 @@ export function MoodCheckin({ slot: _slot, initialMood, onSave, lang = 'it' }: M
   return (
     <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}>
       <View style={styles.headingRow}>
-        <Text style={[typography.body, styles.question, { color: theme.text }]}>
-          {t.dashboard.mood.question}
-        </Text>
+        <Text style={[typography.body, styles.question, { color: theme.text }]}>{t.dashboard.mood.question}</Text>
         {isRecorded && (
           <Animated.View style={confirmedStyle}>
             <View style={[styles.confirmedPill, { backgroundColor: theme.surfaceMuted }]}>
-              <Text variant="caption" color={theme.textMuted}>
-                {t.dashboard.mood.confirmed}
-              </Text>
+              <Text variant="caption" color={theme.textMuted}>{t.dashboard.mood.confirmed}</Text>
             </View>
           </Animated.View>
         )}
@@ -124,6 +120,7 @@ export function MoodCheckin({ slot: _slot, initialMood, onSave, lang = 'it' }: M
             selectedColor={theme.accent}
             unselectedColor={theme.textFaint}
             selectedBg={theme.surfaceMuted}
+            borderColor={theme.border}
             onPress={() => handleTap(index)}
           />
         ))}
@@ -171,10 +168,11 @@ type MoodOptionProps = {
   selectedColor: string
   unselectedColor: string
   selectedBg: string
+  borderColor: string
   onPress: () => void
 }
 
-function MoodOption({ Icon, isSelected, selectedColor, unselectedColor, selectedBg, onPress }: MoodOptionProps) {
+function MoodOption({ Icon, isSelected, selectedColor, unselectedColor, selectedBg, borderColor, onPress }: MoodOptionProps) {
   const scale = useSharedValue(isSelected ? 1.08 : 1)
   const isFirstRun = useRef(true)
 
@@ -193,6 +191,7 @@ function MoodOption({ Icon, isSelected, selectedColor, unselectedColor, selected
       <Animated.View
         style={[
           styles.iconWrap,
+          { borderColor: isSelected ? selectedColor : borderColor },
           isSelected && { backgroundColor: selectedBg },
           animatedStyle,
         ]}
@@ -206,8 +205,13 @@ function MoodOption({ Icon, isSelected, selectedColor, unselectedColor, selected
 const styles = StyleSheet.create({
   container: {
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     padding: spacing.lg,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.035,
+    shadowRadius: 16,
+    elevation: 2,
   },
   headingRow: {
     flexDirection: 'row',
@@ -233,19 +237,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   iconWrap: {
-    width: 46,
-    height: 46,
+    width: 48,
+    height: 48,
     borderRadius: radius.full,
+    borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
   slider: {
-    marginTop: spacing.sm,
+    marginTop: spacing.md,
     marginHorizontal: -4,
+    height: 34,
   },
   labelsRow: {
     flexDirection: 'row',
     justifyContent: 'space-around',
+    marginTop: -2,
   },
   label: {
     flex: 1,
