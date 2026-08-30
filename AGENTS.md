@@ -31,10 +31,10 @@ The repository currently exposes a `lint` script, but a verified ESLint setup wa
 Do not claim lint is green until ESLint is explicitly configured and executed successfully.
 
 ## Expo / React Native upgrades
-Current project: Expo SDK 51.
-Do not perform a partial SDK upgrade. Update Expo, React, React Native, Expo packages,
-compatible RN libraries, CI Node version, Android SDK requirements and lockfile together.
-Run `npx expo install --fix` and `npx expo-doctor`, then regenerate native projects and rebuild.
+Current project: Expo SDK 57 with React 19.2.3 and React Native 0.86.3.
+Keep Expo, React, React Native, Expo packages, compatible RN libraries, Node 22,
+Android SDK requirements and the lockfile aligned as one coordinated stack.
+Run `npx expo install --check`, `npx expo-doctor`, `npm run typecheck`, and Android prebuild/release validation after native dependency or app-config changes.
 
 ## Backend contracts currently used
 Known Supabase resources:
