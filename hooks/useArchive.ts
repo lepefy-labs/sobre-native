@@ -2,7 +2,7 @@ import { useInfiniteQuery } from '@tanstack/react-query'
 import { supabase } from '@/lib/supabase'
 import { useAuth } from './useAuth'
 import { useProfile } from './useProfile'
-import { getTodayDateString } from './useHomeData'
+import { getDateStringForTimezone, getArchiveInitialWindow, getArchiveCutoffDate, getNextArchiveWindow } from '@/lib/domain/time'
 import type { ContentType, MoodValue, NotificationSlot } from '@/types/database'
 
 export type ArchiveEntry = {
@@ -47,30 +47,6 @@ type MoodRow = {
   recorded_date: string
 }
 
-const WINDOW_DAYS = 14
-const MAX_HISTORY_MONTHS = 6
-
-function toUTCDate(dateString: string): Date {
-  const [year, month, day] = dateString.split('-').map(Number)
-  return new Date(Date.UTC(year, month - 1, day))
-}
-
-function toDateString(date: Date): string {
-  return date.toISOString().slice(0, 10)
-}
-
-function addDays(dateString: string, days: number): string {
-  const date = toUTCDate(dateString)
-  date.setUTCDate(date.getUTCDate() + days)
-  return toDateString(date)
-}
-
-function addMonths(dateString: string, months: number): string {
-  const date = toUTCDate(dateString)
-  date.setUTCMonth(date.getUTCMonth() + months)
-  return toDateString(date)
-}
-
 function moodKey(recordedDate: string, slot: NotificationSlot): string {
   return `${recordedDate}_${slot}`
 }
@@ -78,8 +54,6 @@ function moodKey(recordedDate: string, slot: NotificationSlot): string {
 async function fetchArchivePage(userId: string, pageParam: ArchivePageParam): Promise<ArchiveEntry[]> {
   const { lowerBound, upperBound } = pageParam
 
-  // Content is shown even if deactivated after being sent — the archive is a
-  // record of what the user actually received, not of what's still live.
   const { data: notifRows, error: notifError } = await supabase
     .from('notifications')
     .select('id, sent_at, sent_date, slot, opened_at, contents!inner(id, type, title, body, tags)')
@@ -128,13 +102,9 @@ export function useArchive() {
   const { user } = useAuth()
   const { data: profile } = useProfile()
   const timezone = profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
-  const today = getTodayDateString(timezone)
-  const cutoffDate = addMonths(today, -MAX_HISTORY_MONTHS)
-
-  const initialPageParam: ArchivePageParam = {
-    lowerBound: addDays(today, -WINDOW_DAYS),
-    upperBound: addDays(today, 1),
-  }
+  const today = getDateStringForTimezone(timezone)
+  const cutoffDate = getArchiveCutoffDate(today)
+  const initialPageParam: ArchivePageParam = getArchiveInitialWindow(today)
 
   const query = useInfiniteQuery({
     queryKey: ['archive', user?.id] as const,
@@ -146,13 +116,7 @@ export function useArchive() {
     initialPageParam,
     getNextPageParam: (lastPage: ArchivePage) => {
       if (lastPage.entries.length === 0) return undefined
-      if (lastPage.pageParam.lowerBound <= cutoffDate) return undefined
-
-      const nextUpperBound = lastPage.pageParam.lowerBound
-      const rawNextLowerBound = addDays(nextUpperBound, -WINDOW_DAYS)
-      const nextLowerBound = rawNextLowerBound < cutoffDate ? cutoffDate : rawNextLowerBound
-
-      return { lowerBound: nextLowerBound, upperBound: nextUpperBound }
+      return getNextArchiveWindow(lastPage.pageParam.lowerBound, cutoffDate)
     },
     enabled: !!user,
   })
