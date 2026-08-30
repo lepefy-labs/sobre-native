@@ -51,11 +51,10 @@ export function ContentCard({ content, lang = 'it', style, onClose }: ContentCar
     }
   }
 
+  const isThought = content.type === 'thought'
+
   return (
-    <LinearGradient
-      colors={colors}
-      style={[styles.card, { borderColor: theme.borderSubtle }, style]}
-    >
+    <LinearGradient colors={colors} style={[styles.card, { borderColor: theme.borderSubtle }, style]}>
       <View style={styles.header}>
         <View style={styles.headerLabel}>
           {content.type === 'story' && content.title && (
@@ -97,24 +96,35 @@ export function ContentCard({ content, lang = 'it', style, onClose }: ContentCar
         </View>
       </View>
 
+      {isThought && (
+        <Text style={[styles.quoteMark, { color: theme.accent }]}>“</Text>
+      )}
+
       <Text
         style={[
           typography.body,
           styles.body,
           { color: theme.textSecondary },
-          content.type === 'thought' && [styles.thoughtBody, { fontFamily: fonts.serif.regular, color: theme.text }],
+          isThought && [styles.thoughtBody, { fontFamily: fonts.serif.regular, color: theme.text }],
         ]}
       >
         {content.body}
       </Text>
 
-      {tags.length > 0 && (
-        <View style={styles.tagsRow}>
-          {tags.map((tag) => (
-            <View key={tag} style={[styles.tagPill, { backgroundColor: theme.surface }]}> 
-              <Text style={[typography.caption, { color: theme.textMuted }]}>#{tag}</Text>
+      {(tags.length > 0 || isThought) && (
+        <View style={[styles.footer, { borderTopColor: theme.borderSubtle }]}>
+          {tags.length > 0 ? (
+            <View style={styles.tagsRow}>
+              {tags.map((tag) => (
+                <View key={tag} style={[styles.tagPill, { backgroundColor: theme.surface }]}> 
+                  <Text style={[typography.caption, { color: theme.textMuted }]}>#{tag}</Text>
+                </View>
+              ))}
             </View>
-          ))}
+          ) : (
+            <View />
+          )}
+          {isThought && <View style={[styles.editorialDot, { backgroundColor: theme.accent }]} />}
         </View>
       )}
 
@@ -131,16 +141,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: radius.xl,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 18,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.07,
+    shadowRadius: 22,
+    elevation: 5,
+    overflow: 'hidden',
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: spacing.lg,
+    marginBottom: spacing.md,
   },
   headerLabel: {
     flex: 1,
@@ -152,8 +163,8 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   iconButton: {
-    width: 36,
-    height: 36,
+    width: 38,
+    height: 38,
     borderRadius: radius.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -176,27 +187,50 @@ const styles = StyleSheet.create({
     fontWeight: fontWeight.semibold as any,
     letterSpacing: 1,
   },
+  quoteMark: {
+    fontFamily: fonts.serif.regular,
+    fontSize: 58,
+    lineHeight: 58,
+    marginTop: 2,
+    marginBottom: -10,
+    opacity: 0.85,
+  },
   body: {
     fontSize: fontSize.lg,
     lineHeight: 28,
   },
   thoughtBody: {
-    fontSize: 27,
-    lineHeight: 38,
+    fontSize: 28,
+    lineHeight: 39,
     fontWeight: fontWeight.normal as any,
     textAlign: 'left',
-    paddingVertical: spacing.sm,
+    paddingBottom: spacing.sm,
+  },
+  footer: {
+    marginTop: spacing.xl,
+    paddingTop: spacing.md,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.md,
   },
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: spacing.xl,
+    flex: 1,
     gap: spacing.xs,
   },
   tagPill: {
     borderRadius: radius.full,
     paddingHorizontal: 10,
     paddingVertical: 6,
+  },
+  editorialDot: {
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    opacity: 0.8,
   },
   offscreen: {
     position: 'absolute',
