@@ -19,7 +19,7 @@ import { useArchive, type ArchiveEntry } from '@/hooks/useArchive'
 import { useProfile } from '@/hooks/useProfile'
 import { getT, getLangFromStorage } from '@/lib/i18n'
 import { useTheme } from '@/hooks/useTheme'
-import { spacing, radius, typography } from '@/constants/theme'
+import { spacing, radius, typography, fonts } from '@/constants/theme'
 import {
   ContentThoughtIcon,
   ContentStoryIcon,
@@ -55,7 +55,6 @@ const MOOD_FILTER_ICONS: Record<MoodValue, (props: IconProps) => JSX.Element> = 
 }
 
 const MOOD_ORDER: MoodValue[] = ['very_low', 'low', 'neutral', 'good', 'great']
-
 const LOCALE_BY_LANG: Record<ContentLang, string> = { it: 'it-IT', fr: 'fr-FR' }
 
 function toUTCDate(dateString: string): Date {
@@ -118,7 +117,6 @@ export default function ArchiveScreen() {
   const lang: ContentLang = profile?.lang ?? storedLang ?? 'it'
   const timezone = profile?.timezone ?? Intl.DateTimeFormat().resolvedOptions().timeZone
   const t = getT(lang)
-
   const { entries, isLoading, isFetchingNextPage, hasNextPage, hasReachedHistoryLimit, fetchNextPage } = useArchive()
 
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all')
@@ -158,8 +156,12 @@ export default function ArchiveScreen() {
 
   return (
     <View style={[styles.safe, { backgroundColor: theme.bg }]}>
-      <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-        <Text style={[typography.display, styles.title, { color: theme.text }]}>{t.archive.title}</Text>
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.header}>
+          <Text style={[typography.display, styles.title, { fontFamily: fonts.serif.light, color: theme.text }]}>
+            {t.archive.title}
+          </Text>
+        </View>
 
         <FilterBar
           typeFilter={typeFilter}
@@ -173,15 +175,19 @@ export default function ArchiveScreen() {
           <ArchiveSkeleton />
         ) : entries.length === 0 ? (
           <View style={styles.emptyWrap}>
-            <Text variant="body" color={theme.textMuted} style={styles.emptyText}>
-              {t.archive.emptyState}
-            </Text>
+            <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}> 
+              <Text variant="body" color={theme.textMuted} style={styles.emptyText}>
+                {t.archive.emptyState}
+              </Text>
+            </View>
           </View>
         ) : isFilteredEmpty ? (
           <View style={styles.emptyWrap}>
-            <Text variant="body" color={theme.textMuted} style={styles.emptyText}>
-              {hasReachedHistoryLimit ? t.archive.emptyHistoryLimit : t.archive.emptyFiltered}
-            </Text>
+            <View style={[styles.emptyCard, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}> 
+              <Text variant="body" color={theme.textMuted} style={styles.emptyText}>
+                {hasReachedHistoryLimit ? t.archive.emptyHistoryLimit : t.archive.emptyFiltered}
+              </Text>
+            </View>
           </View>
         ) : (
           <SectionList
@@ -189,7 +195,7 @@ export default function ArchiveScreen() {
             keyExtractor={(entry) => entry.id}
             contentContainerStyle={styles.listContent}
             renderSectionHeader={({ section }) => (
-              <Text style={[typography.caption, styles.sectionHeader, { color: theme.textFaint }]}>
+              <Text style={[typography.caption, styles.sectionHeader, { color: theme.textMuted }]}>
                 {section.title.toUpperCase()}
               </Text>
             )}
@@ -206,6 +212,7 @@ export default function ArchiveScreen() {
               ) : null
             }
             stickySectionHeadersEnabled={false}
+            showsVerticalScrollIndicator={false}
           />
         )}
       </SafeAreaView>
@@ -249,7 +256,7 @@ function FilterBar({ typeFilter, onSelectType, moodFilters, onToggleMood, t }: F
   ]
 
   return (
-    <View style={styles.filterBar}>
+    <View style={[styles.filterBar, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}> 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
         {typeOptions.map((option) => {
           const isSelected = typeFilter === option.value
@@ -330,14 +337,20 @@ const styles = StyleSheet.create({
   safe: {
     flex: 1,
   },
-  title: {
-    fontSize: 28,
-    paddingHorizontal: spacing.xl,
+  header: {
+    paddingHorizontal: spacing.lg,
     paddingTop: spacing.lg,
-    marginBottom: spacing.md,
+    paddingBottom: spacing.md,
+  },
+  title: {
+    fontSize: 38,
+    lineHeight: 44,
   },
   filterBar: {
-    paddingHorizontal: spacing.xl,
+    marginHorizontal: spacing.lg,
+    padding: spacing.md,
+    borderWidth: 1,
+    borderRadius: radius.lg,
     gap: spacing.sm,
     marginBottom: spacing.md,
   },
@@ -351,21 +364,21 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     borderWidth: 1,
     borderRadius: radius.full,
-    paddingVertical: 6,
-    paddingHorizontal: spacing.sm,
+    paddingVertical: 7,
+    paddingHorizontal: 11,
   },
   chipText: {
     fontSize: 12,
   },
   listContent: {
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
     paddingBottom: spacing.xxl,
   },
   sectionHeader: {
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginTop: spacing.md,
+    letterSpacing: 1.3,
+    marginTop: spacing.lg,
     marginBottom: spacing.sm,
+    paddingLeft: spacing.xs,
   },
   footerLoader: {
     paddingVertical: spacing.lg,
@@ -373,25 +386,30 @@ const styles = StyleSheet.create({
   },
   emptyWrap: {
     flex: 1,
-    alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
+  },
+  emptyCard: {
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.xl,
   },
   emptyText: {
     textAlign: 'center',
   },
   skeletonWrap: {
-    paddingHorizontal: spacing.xl,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
   },
   skeletonRow: {
-    height: 56,
-    borderRadius: radius.md,
+    height: 78,
+    borderRadius: radius.lg,
     marginBottom: spacing.sm,
   },
   modalContainer: {
     flex: 1,
   },
   modalContent: {
-    padding: spacing.xl,
+    padding: spacing.lg,
   },
 })
