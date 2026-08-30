@@ -26,7 +26,7 @@ jobs:
           cache: 'npm'
 
       - name: Prepare report directory
-        run: mkdir -p .upgrade-report/candidate
+        run: mkdir -p upgrade-report/candidate
 
       - name: Build Expo 57 candidate
         id: candidate
@@ -36,76 +36,76 @@ jobs:
         run: |
           set +e
 
-          echo "Node: $(node --version)" | tee .upgrade-report/upgrade-status.txt
-          echo "npm: $(npm --version)" | tee -a .upgrade-report/upgrade-status.txt
-          echo "Base commit: $GITHUB_SHA" | tee -a .upgrade-report/upgrade-status.txt
-          echo >> .upgrade-report/upgrade-status.txt
+          echo "Node: $(node --version)" | tee upgrade-report/upgrade-status.txt
+          echo "npm: $(npm --version)" | tee -a upgrade-report/upgrade-status.txt
+          echo "Base commit: $GITHUB_SHA" | tee -a upgrade-report/upgrade-status.txt
+          echo >> upgrade-report/upgrade-status.txt
 
           npm install expo@^57.0.0 --save --ignore-scripts \
-            > .upgrade-report/01-install-expo.log 2>&1
+            > upgrade-report/01-install-expo.log 2>&1
           INSTALL_EXPO=$?
-          echo "install_expo=$INSTALL_EXPO" | tee -a .upgrade-report/upgrade-status.txt
+          echo "install_expo=$INSTALL_EXPO" | tee -a upgrade-report/upgrade-status.txt
 
           npx expo install --fix \
-            > .upgrade-report/02-expo-install-fix.log 2>&1
+            > upgrade-report/02-expo-install-fix.log 2>&1
           INSTALL_FIX=$?
-          echo "expo_install_fix=$INSTALL_FIX" | tee -a .upgrade-report/upgrade-status.txt
+          echo "expo_install_fix=$INSTALL_FIX" | tee -a upgrade-report/upgrade-status.txt
 
           npx expo-doctor@latest \
-            > .upgrade-report/03-expo-doctor.log 2>&1
+            > upgrade-report/03-expo-doctor.log 2>&1
           DOCTOR=$?
-          echo "expo_doctor=$DOCTOR" | tee -a .upgrade-report/upgrade-status.txt
+          echo "expo_doctor=$DOCTOR" | tee -a upgrade-report/upgrade-status.txt
 
           npm run typecheck \
-            > .upgrade-report/04-typecheck.log 2>&1
+            > upgrade-report/04-typecheck.log 2>&1
           TYPECHECK=$?
-          echo "typecheck=$TYPECHECK" | tee -a .upgrade-report/upgrade-status.txt
+          echo "typecheck=$TYPECHECK" | tee -a upgrade-report/upgrade-status.txt
 
           npx expo prebuild --platform android --clean --no-install \
-            > .upgrade-report/05-prebuild-android.log 2>&1
+            > upgrade-report/05-prebuild-android.log 2>&1
           PREBUILD=$?
-          echo "prebuild_android=$PREBUILD" | tee -a .upgrade-report/upgrade-status.txt
+          echo "prebuild_android=$PREBUILD" | tee -a upgrade-report/upgrade-status.txt
 
-          git status --short > .upgrade-report/git-status.txt
-          git diff -- package.json package-lock.json app.json > .upgrade-report/upgrade.patch
-          git diff --stat > .upgrade-report/diff-stat.txt
+          git status --short > upgrade-report/git-status.txt
+          git diff -- package.json package-lock.json app.json > upgrade-report/upgrade.patch
+          git diff --stat > upgrade-report/diff-stat.txt
 
           for file in package.json package-lock.json app.json; do
             if [ -f "$file" ] && ! git diff --quiet -- "$file"; then
-              mkdir -p ".upgrade-report/candidate/$(dirname "$file")"
-              cp "$file" ".upgrade-report/candidate/$file"
+              mkdir -p "upgrade-report/candidate/$(dirname "$file")"
+              cp "$file" "upgrade-report/candidate/$file"
             fi
           done
 
           if [ -d patches ]; then
             while IFS= read -r -d '' file; do
               if ! git diff --quiet -- "$file"; then
-                mkdir -p ".upgrade-report/candidate/$(dirname "$file")"
-                cp "$file" ".upgrade-report/candidate/$file"
+                mkdir -p "upgrade-report/candidate/$(dirname "$file")"
+                cp "$file" "upgrade-report/candidate/$file"
               fi
             done < <(find patches -type f -print0)
           fi
 
-          echo >> .upgrade-report/upgrade-status.txt
+          echo >> upgrade-report/upgrade-status.txt
           echo "Candidate generation completed. Non-zero command results are preserved for review." \
-            | tee -a .upgrade-report/upgrade-status.txt
+            | tee -a upgrade-report/upgrade-status.txt
 
           exit 0
 
       - name: Show candidate summary
         if: always()
         run: |
-          cat .upgrade-report/upgrade-status.txt || true
+          cat upgrade-report/upgrade-status.txt || true
           echo '--- git status ---'
-          cat .upgrade-report/git-status.txt || true
+          cat upgrade-report/git-status.txt || true
           echo '--- diff stat ---'
-          cat .upgrade-report/diff-stat.txt || true
+          cat upgrade-report/diff-stat.txt || true
 
       - name: Upload Expo 57 candidate
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: expo-57-upgrade-candidate-${{ github.run_number }}
-          path: .upgrade-report/
+          path: upgrade-report/
           if-no-files-found: error
           retention-days: 14
