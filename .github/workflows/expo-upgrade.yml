@@ -43,16 +43,14 @@ jobs:
 
           node <<'NODE'
           const fs = require('fs')
+
           const app = JSON.parse(fs.readFileSync('app.json', 'utf8'))
           delete app.expo.splash
           app.expo.plugins = (app.expo.plugins || []).filter((plugin) => {
             const name = Array.isArray(plugin) ? plugin[0] : plugin
             return name !== 'expo-splash-screen'
           })
-          app.expo.plugins.push([
-            'expo-splash-screen',
-            { backgroundColor: '#fafaf9' }
-          ])
+          app.expo.plugins.push(['expo-splash-screen', { backgroundColor: '#fafaf9' }])
           app.expo.plugins = app.expo.plugins.map((plugin) => {
             if (!Array.isArray(plugin) || plugin[0] !== 'expo-build-properties') return plugin
             const config = plugin[1] || {}
@@ -67,10 +65,35 @@ jobs:
           fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n')
 
           const tsconfig = JSON.parse(fs.readFileSync('tsconfig.json', 'utf8'))
-          if (tsconfig.compilerOptions) {
-            delete tsconfig.compilerOptions.baseUrl
-          }
+          if (tsconfig.compilerOptions) delete tsconfig.compilerOptions.baseUrl
           fs.writeFileSync('tsconfig.json', JSON.stringify(tsconfig, null, 2) + '\n')
+
+          const jsxFiles = [
+            'app/(app)/archive.tsx',
+            'components/domain/ArchiveListItem.tsx',
+            'components/domain/MoodCheckin.tsx'
+          ]
+          for (const file of jsxFiles) {
+            let source = fs.readFileSync(file, 'utf8')
+            if (!source.includes("import type { JSX } from 'react'")) {
+              source = "import type { JSX } from 'react'\n" + source
+            }
+            fs.writeFileSync(file, source)
+          }
+
+          fs.writeFileSync(
+            'components/ui/icons/types.ts',
+            "import type { ColorValue } from 'react-native'\n\nexport type IconProps = {\n  color: ColorValue\n  size?: number\n}\n"
+          )
+
+          let notifications = fs.readFileSync('lib/notifications.ts', 'utf8')
+          notifications = notifications.replace(
+            "    shouldShowAlert: true,\n    shouldPlaySound: false,\n    shouldSetBadge: false,",
+            "    shouldShowAlert: true,\n    shouldShowBanner: true,\n    shouldShowList: true,\n    shouldPlaySound: false,\n    shouldSetBadge: false,"
+          )
+          fs.writeFileSync('lib/notifications.ts', notifications)
+
+          fs.writeFileSync('global.d.ts', "declare module '*.css'\n")
           NODE
 
           npm pkg delete scripts.postinstall
@@ -114,13 +137,21 @@ jobs:
           echo "prebuild_android=$PREBUILD" | tee -a upgrade-report/upgrade-status.txt
 
           git status --short > upgrade-report/git-status.txt
-          git diff -- package.json package-lock.json app.json tsconfig.json patches/ > upgrade-report/upgrade.patch
           git diff --stat > upgrade-report/diff-stat.txt
+          git diff -- package.json package-lock.json app.json tsconfig.json app/ components/ lib/ global.d.ts patches/ > upgrade-report/upgrade.patch
 
-          for file in package.json package-lock.json app.json tsconfig.json; do
-            if [ -f "$file" ] && ! git diff --quiet -- "$file"; then
-              mkdir -p "upgrade-report/candidate/$(dirname "$file")"
-              cp "$file" "upgrade-report/candidate/$file"
+          for file in \
+            package.json package-lock.json app.json tsconfig.json global.d.ts \
+            'app/(app)/archive.tsx' \
+            components/domain/ArchiveListItem.tsx \
+            components/domain/MoodCheckin.tsx \
+            components/ui/icons/types.ts \
+            lib/notifications.ts; do
+            if [ -f "$file" ]; then
+              if ! git diff --quiet -- "$file" || [ "$file" = "global.d.ts" ]; then
+                mkdir -p "upgrade-report/candidate/$(dirname "$file")"
+                cp "$file" "upgrade-report/candidate/$file"
+              fi
             fi
           done
 
