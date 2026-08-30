@@ -1,3 +1,4 @@
+import type { JSX } from 'react'
 import { useEffect, useRef, useState } from 'react'
 import { View, Pressable, StyleSheet } from 'react-native'
 import Slider from '@react-native-community/slider'

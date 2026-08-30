@@ -1,3 +1,4 @@
+import type { JSX } from 'react'
 import { Pressable, View, StyleSheet } from 'react-native'
 import { Text } from '@/components/ui/Text'
 import { useTheme } from '@/hooks/useTheme'
