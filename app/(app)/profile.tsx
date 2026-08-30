@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { View, ScrollView, StyleSheet, Pressable, Switch, Alert, Platform } from 'react-native'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { useRouter } from 'expo-router'
 import { useQueryClient } from '@tanstack/react-query'
 import * as WebBrowser from 'expo-web-browser'
@@ -13,7 +14,7 @@ import { supabase } from '@/lib/supabase'
 import { signOut } from '@/lib/auth'
 import { getT, setLangInStorage } from '@/lib/i18n'
 import { useTheme } from '@/hooks/useTheme'
-import { spacing, radius, fontSize } from '@/constants/theme'
+import { spacing, radius, fontSize, typography, fonts } from '@/constants/theme'
 import type { ContentLang, ThemePreference } from '@/types/database'
 
 function formatTime(value: string | null | undefined): string {
@@ -85,7 +86,7 @@ export default function ProfileScreen() {
   }
 
   function openTimePicker(current: string | null | undefined, onChange: (time: string) => void) {
-    if (Platform.OS !== 'android') return // TODO: iOS
+    if (Platform.OS !== 'android') return
     DateTimePickerAndroid.open({
       value: timeStringToDate(current),
       mode: 'time',
@@ -147,208 +148,193 @@ export default function ProfileScreen() {
   const isPro = profile?.subscription_status === 'pro'
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.bg }]} contentContainerStyle={styles.content}>
-      <Text variant="label" style={styles.sectionTitle}>
-        {t.profile.sectionAccount}
-      </Text>
-      <View style={styles.row}>
-        <Text variant="body" color={theme.textMuted}>
-          {t.profile.nameLabel}
-        </Text>
-        {editingName ? (
-          <View style={styles.nameEditRow}>
-            <TextInput
-              value={nameValue}
-              onChangeText={setNameValue}
-              autoFocus
-              onBlur={saveName}
-              onSubmitEditing={saveName}
-              style={styles.nameInput}
+    <View style={[styles.container, { backgroundColor: theme.bg }]}>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+          <View style={styles.header}>
+            <Text style={[typography.display, styles.title, { fontFamily: fonts.serif.light, color: theme.text }]}>
+              {t.dashboard.nav.profile}
+            </Text>
+            {profile?.email && (
+              <Text variant="caption" color={theme.textMuted} style={styles.subtitle}>
+                {profile.email}
+              </Text>
+            )}
+          </View>
+
+          <SectionLabel label={t.profile.sectionAccount} />
+          <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}>
+            <View style={styles.row}>
+              <Text variant="body" color={theme.textMuted}>{t.profile.nameLabel}</Text>
+              {editingName ? (
+                <View style={styles.nameEditRow}>
+                  <TextInput
+                    value={nameValue}
+                    onChangeText={setNameValue}
+                    autoFocus
+                    onBlur={saveName}
+                    onSubmitEditing={saveName}
+                    style={styles.nameInput}
+                  />
+                  <Pressable onPress={saveName}>
+                    <Text variant="label" color={theme.text}>{t.profile.nameSave}</Text>
+                  </Pressable>
+                </View>
+              ) : (
+                <Pressable style={styles.valueRow} onPress={() => setEditingName(true)}>
+                  <Text variant="body" color={theme.text}>{profile?.name || '—'}</Text>
+                  <Text style={[styles.chevron, { color: theme.textFaint }]}>›</Text>
+                </Pressable>
+              )}
+            </View>
+
+            <View style={[styles.cardDivider, { backgroundColor: theme.borderSubtle }]} />
+
+            <View style={styles.row}>
+              <Text variant="body" color={theme.textMuted}>{t.profile.langLabel}</Text>
+              <View style={styles.chipRow}>
+                <ChoiceChip label="🇮🇹 IT" selected={profile?.lang === 'it'} onPress={() => selectLang('it')} />
+                <ChoiceChip label="🇫🇷 FR" selected={profile?.lang === 'fr'} onPress={() => selectLang('fr')} />
+              </View>
+            </View>
+
+            <View style={[styles.cardDivider, { backgroundColor: theme.borderSubtle }]} />
+
+            <View style={styles.row}>
+              <Text variant="body" color={theme.textMuted}>{t.profile.themeLabel}</Text>
+              <View style={styles.chipRow}>
+                {([
+                  ['system', t.profile.themeSystem],
+                  ['light', t.profile.themeLight],
+                  ['dark', t.profile.themeDark],
+                ] as [ThemePreference, string][]).map(([preference, label]) => (
+                  <ChoiceChip
+                    key={preference}
+                    label={label}
+                    selected={theme.themePreference === preference}
+                    onPress={() => selectTheme(preference)}
+                  />
+                ))}
+              </View>
+            </View>
+          </View>
+
+          <SectionLabel label={t.profile.sectionNotifications} />
+          <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}>
+            <NotificationRow
+              label={t.profile.morningLabel}
+              enabled={!!profile?.notif_morning_enabled}
+              onToggle={toggleMorning}
+              time={formatTime(profile?.notif_morning_time)}
+              onTimePress={() => openTimePicker(profile?.notif_morning_time, saveMorningTime)}
             />
-            <Pressable onPress={saveName}>
-              <Text variant="label" color={theme.text}>
-                {t.profile.nameSave}
-              </Text>
+            <View style={[styles.cardDivider, { backgroundColor: theme.borderSubtle }]} />
+            <NotificationRow
+              label={t.profile.eveningLabel}
+              enabled={!!profile?.notif_evening_enabled}
+              onToggle={toggleEvening}
+              time={formatTime(profile?.notif_evening_time)}
+              onTimePress={() => openTimePicker(profile?.notif_evening_time, saveEveningTime)}
+            />
+          </View>
+
+          <SectionLabel label={t.profile.sectionSubscription} />
+          <View style={[styles.sectionCard, styles.subscriptionCard, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}>
+            {isPro ? (
+              <View>
+                <View style={[styles.proBadge, { backgroundColor: theme.accent }]}> 
+                  <Text style={[styles.proBadgeText, { color: theme.onPrimary }]}>{t.profile.subscriptionPro}</Text>
+                </View>
+                {profile?.current_period_end && (
+                  <Text variant="caption" color={theme.textMuted} style={styles.renewalText}>
+                    {t.profile.subscriptionRenewal} {formatDate(profile.current_period_end)}
+                  </Text>
+                )}
+                <Button label={t.profile.manageSubscription} onPress={handleManageSubscription} variant="secondary" />
+              </View>
+            ) : (
+              <View>
+                <Text variant="body" color={theme.textMuted} style={styles.freeText}>
+                  {t.profile.subscriptionFree}
+                </Text>
+                <Button label={t.profile.upgradeMonthly} onPress={() => handleUpgrade('monthly')} variant="primary" />
+                <View style={styles.buttonSpacer} />
+                <Button label={t.profile.upgradeYearly} onPress={() => handleUpgrade('yearly')} variant="secondary" />
+              </View>
+            )}
+          </View>
+
+          <SectionLabel label={t.profile.sectionOther} />
+          <View style={[styles.sectionCard, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}>
+            <Pressable onPress={openPrivacy} style={styles.linkRow}>
+              <Text variant="body" color={theme.text}>{t.profile.privacy}</Text>
+              <Text style={[styles.chevron, { color: theme.textFaint }]}>›</Text>
+            </Pressable>
+            <View style={[styles.cardDivider, { backgroundColor: theme.borderSubtle }]} />
+            <Pressable onPress={openTerms} style={styles.linkRow}>
+              <Text variant="body" color={theme.text}>{t.profile.terms}</Text>
+              <Text style={[styles.chevron, { color: theme.textFaint }]}>›</Text>
             </Pressable>
           </View>
-        ) : (
-          <Pressable style={styles.valueRow} onPress={() => setEditingName(true)}>
-            <Text variant="body" color={theme.text}>
-              {profile?.name || '—'}
-            </Text>
-            <Text style={styles.editIcon}>✏️</Text>
+
+          <Pressable onPress={handleLogout} style={styles.logoutButton} accessibilityRole="button">
+            <Text variant="label" color={theme.danger}>{t.profile.logout}</Text>
           </Pressable>
-        )}
+        </ScrollView>
+      </SafeAreaView>
+    </View>
+  )
+}
+
+function SectionLabel({ label }: { label: string }) {
+  const theme = useTheme()
+  return (
+    <Text style={[styles.sectionTitle, { color: theme.textMuted }]}>
+      {label.toUpperCase()}
+    </Text>
+  )
+}
+
+function ChoiceChip({ label, selected, onPress }: { label: string; selected: boolean; onPress: () => void }) {
+  const theme = useTheme()
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[
+        styles.choiceChip,
+        { borderColor: theme.border },
+        selected && { backgroundColor: theme.primaryBg, borderColor: theme.primaryBg },
+      ]}
+    >
+      <Text style={[styles.choiceChipText, { color: selected ? theme.onPrimary : theme.textSecondary }]}>{label}</Text>
+    </Pressable>
+  )
+}
+
+function NotificationRow({
+  label,
+  enabled,
+  onToggle,
+  time,
+  onTimePress,
+}: {
+  label: string
+  enabled: boolean
+  onToggle: (value: boolean) => void
+  time: string
+  onTimePress: () => void
+}) {
+  const theme = useTheme()
+  return (
+    <View style={styles.notifRow}>
+      <View>
+        <Text variant="body" color={theme.text}>{label}</Text>
+        <Pressable onPress={onTimePress} style={styles.timePressable}>
+          <Text variant="caption" color={theme.textMuted}>{time}</Text>
+        </Pressable>
       </View>
-
-      <View style={styles.row}>
-        <Text variant="body" color={theme.textMuted}>
-          {t.profile.emailLabel}
-        </Text>
-        <Text variant="body" color={theme.textFaint}>
-          {profile?.email}
-        </Text>
-      </View>
-
-      <View style={styles.row}>
-        <Text variant="body" color={theme.textMuted}>
-          {t.profile.langLabel}
-        </Text>
-        <View style={styles.langRow}>
-          <Pressable
-            style={[
-              styles.langChip,
-              { borderColor: theme.border },
-              profile?.lang === 'it' && { backgroundColor: theme.primaryBg, borderColor: theme.primaryBg },
-            ]}
-            onPress={() => selectLang('it')}
-          >
-            <Text style={[styles.langChipText, { color: profile?.lang === 'it' ? theme.onPrimary : theme.textSecondary }]}>
-              🇮🇹 IT
-            </Text>
-          </Pressable>
-          <Pressable
-            style={[
-              styles.langChip,
-              { borderColor: theme.border },
-              profile?.lang === 'fr' && { backgroundColor: theme.primaryBg, borderColor: theme.primaryBg },
-            ]}
-            onPress={() => selectLang('fr')}
-          >
-            <Text style={[styles.langChipText, { color: profile?.lang === 'fr' ? theme.onPrimary : theme.textSecondary }]}>
-              🇫🇷 FR
-            </Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={styles.row}>
-        <Text variant="body" color={theme.textMuted}>
-          {t.profile.themeLabel}
-        </Text>
-        <View style={styles.langRow}>
-          {(
-            [
-              ['system', t.profile.themeSystem],
-              ['light', t.profile.themeLight],
-              ['dark', t.profile.themeDark],
-            ] as [ThemePreference, string][]
-          ).map(([preference, label]) => (
-            <Pressable
-              key={preference}
-              style={[
-                styles.langChip,
-                { borderColor: theme.border },
-                theme.themePreference === preference && { backgroundColor: theme.primaryBg, borderColor: theme.primaryBg },
-              ]}
-              onPress={() => selectTheme(preference)}
-            >
-              <Text
-                style={[
-                  styles.langChipText,
-                  { color: theme.themePreference === preference ? theme.onPrimary : theme.textSecondary },
-                ]}
-              >
-                {label}
-              </Text>
-            </Pressable>
-          ))}
-        </View>
-      </View>
-
-      <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
-
-      <Text variant="label" style={styles.sectionTitle}>
-        {t.profile.sectionNotifications}
-      </Text>
-      <View style={styles.notifRow}>
-        <Text variant="body">{t.profile.morningLabel}</Text>
-        <View style={styles.notifControls}>
-          <Switch
-            value={!!profile?.notif_morning_enabled}
-            onValueChange={toggleMorning}
-            trackColor={{ true: theme.primaryBg }}
-          />
-          <Pressable
-            style={[styles.timeButton, { borderColor: theme.border }]}
-            onPress={() => openTimePicker(profile?.notif_morning_time, saveMorningTime)}
-          >
-            <Text style={[styles.timeButtonText, { color: theme.text }]}>{formatTime(profile?.notif_morning_time)}</Text>
-          </Pressable>
-        </View>
-      </View>
-      <View style={styles.notifRow}>
-        <Text variant="body">{t.profile.eveningLabel}</Text>
-        <View style={styles.notifControls}>
-          <Switch
-            value={!!profile?.notif_evening_enabled}
-            onValueChange={toggleEvening}
-            trackColor={{ true: theme.primaryBg }}
-          />
-          <Pressable
-            style={[styles.timeButton, { borderColor: theme.border }]}
-            onPress={() => openTimePicker(profile?.notif_evening_time, saveEveningTime)}
-          >
-            <Text style={[styles.timeButtonText, { color: theme.text }]}>{formatTime(profile?.notif_evening_time)}</Text>
-          </Pressable>
-        </View>
-      </View>
-
-      <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
-
-      <Text variant="label" style={styles.sectionTitle}>
-        {t.profile.sectionSubscription}
-      </Text>
-      {isPro ? (
-        <View>
-          <View style={[styles.proBadge, { backgroundColor: theme.accent }]}>
-            <Text style={[styles.proBadgeText, { color: theme.onPrimary }]}>{t.profile.subscriptionPro}</Text>
-          </View>
-          {profile?.current_period_end && (
-            <Text variant="caption" color={theme.textMuted} style={styles.renewalText}>
-              {t.profile.subscriptionRenewal} {formatDate(profile.current_period_end)}
-            </Text>
-          )}
-          <Button
-            label={t.profile.manageSubscription}
-            onPress={handleManageSubscription}
-            variant="secondary"
-          />
-        </View>
-      ) : (
-        <View>
-          <Text variant="body" color={theme.textMuted} style={styles.freeText}>
-            {t.profile.subscriptionFree}
-          </Text>
-          <Button
-            label={t.profile.upgradeMonthly}
-            onPress={() => handleUpgrade('monthly')}
-            variant="primary"
-          />
-          <View style={styles.buttonSpacer} />
-          <Button
-            label={t.profile.upgradeYearly}
-            onPress={() => handleUpgrade('yearly')}
-            variant="secondary"
-          />
-        </View>
-      )}
-
-      <View style={[styles.divider, { backgroundColor: theme.borderSubtle }]} />
-
-      <Text variant="label" style={styles.sectionTitle}>
-        {t.profile.sectionOther}
-      </Text>
-      <Button label={t.profile.privacy} onPress={openPrivacy} variant="secondary" />
-      <View style={styles.buttonSpacer} />
-      <Button label={t.profile.terms} onPress={openTerms} variant="secondary" />
-      <View style={styles.buttonSpacer} />
-      <Pressable onPress={handleLogout} style={styles.logoutButton} accessibilityRole="button">
-        <Text variant="label" color={theme.danger}>
-          {t.profile.logout}
-        </Text>
-      </Pressable>
-    </ScrollView>
+      <Switch value={enabled} onValueChange={onToggle} trackColor={{ true: theme.accent }} />
+    </View>
   )
 }
 
@@ -357,79 +343,93 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    paddingHorizontal: spacing.xl,
-    paddingTop: spacing.lg,
+    paddingHorizontal: spacing.lg,
+    paddingTop: spacing.md,
     paddingBottom: spacing.xxl,
   },
+  header: {
+    paddingTop: spacing.sm,
+    marginBottom: spacing.xl,
+  },
+  title: {
+    fontSize: 38,
+    lineHeight: 44,
+  },
+  subtitle: {
+    marginTop: spacing.xs,
+  },
   sectionTitle: {
-    marginBottom: spacing.md,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
+    marginLeft: spacing.xs,
+    fontSize: fontSize.xs,
+    letterSpacing: 1.3,
+    fontWeight: '600',
+  },
+  sectionCard: {
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    paddingHorizontal: spacing.md,
   },
   row: {
-    marginBottom: spacing.lg,
+    paddingVertical: spacing.md,
   },
   valueRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: spacing.xs,
-    marginTop: spacing.xs,
+    justifyContent: 'space-between',
+    marginTop: 5,
   },
   nameEditRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
   },
   nameInput: {
     flex: 1,
   },
-  editIcon: {
-    fontSize: fontSize.sm,
+  chevron: {
+    fontSize: 24,
+    lineHeight: 26,
   },
-  langRow: {
+  chipRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: spacing.sm,
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
   },
-  langChip: {
+  choiceChip: {
     borderWidth: 1,
-    borderRadius: radius.md,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
+    borderRadius: radius.full,
+    paddingVertical: 7,
+    paddingHorizontal: 12,
   },
-  langChipText: {
+  choiceChipText: {
     fontSize: fontSize.sm,
   },
-  divider: {
+  cardDivider: {
     height: 1,
-    marginVertical: spacing.xl,
   },
   notifRow: {
+    minHeight: 72,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: spacing.md,
+    paddingVertical: spacing.md,
   },
-  notifControls: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.md,
+  timePressable: {
+    marginTop: 4,
+    paddingVertical: 3,
   },
-  timeButton: {
-    borderWidth: 1,
-    borderRadius: radius.md,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: spacing.md,
-  },
-  timeButtonText: {
-    fontSize: fontSize.base,
+  subscriptionCard: {
+    paddingVertical: spacing.lg,
   },
   proBadge: {
     alignSelf: 'flex-start',
     borderRadius: radius.full,
-    paddingVertical: spacing.xs,
-    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
     marginBottom: spacing.sm,
   },
   proBadgeText: {
@@ -445,8 +445,15 @@ const styles = StyleSheet.create({
   buttonSpacer: {
     height: spacing.sm,
   },
+  linkRow: {
+    minHeight: 58,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   logoutButton: {
     alignItems: 'center',
-    paddingVertical: spacing.md,
+    paddingVertical: spacing.lg,
+    marginTop: spacing.md,
   },
 })
