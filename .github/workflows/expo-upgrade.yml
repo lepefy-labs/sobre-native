@@ -1,4 +1,4 @@
-name: Expo 57 Upgrade Candidate
+name: Expo 57 Lockfile Repair
 
 on:
   push:
@@ -11,7 +11,7 @@ permissions:
   contents: write
 
 jobs:
-  upgrade-candidate:
+  repair-lockfile:
     runs-on: ubuntu-latest
     timeout-minutes: 30
 
@@ -25,167 +25,40 @@ jobs:
           node-version: '22.13.1'
           cache: 'npm'
 
-      - name: Prepare report directory
-        run: mkdir -p upgrade-report/candidate
-
-      - name: Build Expo 57 candidate
-        shell: bash
-        env:
-          npm_config_ignore_scripts: 'true'
-          npm_config_legacy_peer_deps: 'true'
-        run: |
-          set +e
-
-          echo "Node: $(node --version)" | tee upgrade-report/upgrade-status.txt
-          echo "npm: $(npm --version)" | tee -a upgrade-report/upgrade-status.txt
-          echo "Base commit: $GITHUB_SHA" | tee -a upgrade-report/upgrade-status.txt
-          echo >> upgrade-report/upgrade-status.txt
-
-          node <<'NODE'
-          const fs = require('fs')
-
-          const app = JSON.parse(fs.readFileSync('app.json', 'utf8'))
-          delete app.expo.splash
-          app.expo.plugins = (app.expo.plugins || []).filter((plugin) => {
-            const name = Array.isArray(plugin) ? plugin[0] : plugin
-            return name !== 'expo-splash-screen'
-          })
-          app.expo.plugins.push(['expo-splash-screen', { backgroundColor: '#fafaf9' }])
-          app.expo.plugins = app.expo.plugins.map((plugin) => {
-            if (!Array.isArray(plugin) || plugin[0] !== 'expo-build-properties') return plugin
-            const config = plugin[1] || {}
-            config.android = {
-              ...(config.android || {}),
-              compileSdkVersion: 36,
-              targetSdkVersion: 36,
-              buildToolsVersion: '36.0.0'
-            }
-            return [plugin[0], config]
-          })
-          fs.writeFileSync('app.json', JSON.stringify(app, null, 2) + '\n')
-
-          const tsconfig = JSON.parse(fs.readFileSync('tsconfig.json', 'utf8'))
-          if (tsconfig.compilerOptions) delete tsconfig.compilerOptions.baseUrl
-          fs.writeFileSync('tsconfig.json', JSON.stringify(tsconfig, null, 2) + '\n')
-
-          const jsxFiles = [
-            'app/(app)/archive.tsx',
-            'components/domain/ArchiveListItem.tsx',
-            'components/domain/MoodCheckin.tsx'
-          ]
-          for (const file of jsxFiles) {
-            let source = fs.readFileSync(file, 'utf8')
-            if (!source.includes("import type { JSX } from 'react'")) {
-              source = "import type { JSX } from 'react'\n" + source
-            }
-            fs.writeFileSync(file, source)
-          }
-
-          fs.writeFileSync(
-            'components/ui/icons/types.ts',
-            "import type { ColorValue } from 'react-native'\n\nexport type IconProps = {\n  color: ColorValue\n  size?: number\n}\n"
-          )
-
-          let notifications = fs.readFileSync('lib/notifications.ts', 'utf8')
-          notifications = notifications.replace(
-            "    shouldShowAlert: true,\n    shouldPlaySound: false,\n    shouldSetBadge: false,",
-            "    shouldShowAlert: true,\n    shouldShowBanner: true,\n    shouldShowList: true,\n    shouldPlaySound: false,\n    shouldSetBadge: false,"
-          )
-          fs.writeFileSync('lib/notifications.ts', notifications)
-
-          fs.writeFileSync('global.d.ts', "declare module '*.css'\n")
-          NODE
-
-          npm pkg delete scripts.postinstall
-          npm uninstall patch-package --ignore-scripts --legacy-peer-deps \
-            > upgrade-report/00-remove-legacy-patch-package.log 2>&1
-          rm -f patches/expo-modules-core+1.12.26.patch
-
-          npm install expo@57.0.18 --save --ignore-scripts --legacy-peer-deps \
-            > upgrade-report/01-install-expo-57.log 2>&1
-          INSTALL_EXPO=$?
-          echo "install_expo_57=$INSTALL_EXPO" | tee -a upgrade-report/upgrade-status.txt
-
-          npx expo install --fix \
-            > upgrade-report/02-expo-install-fix.log 2>&1
-          INSTALL_FIX=$?
-          echo "expo_install_fix=$INSTALL_FIX" | tee -a upgrade-report/upgrade-status.txt
-
-          npx expo install react-native-worklets \
-            > upgrade-report/03-install-worklets.log 2>&1
-          WORKLETS=$?
-          echo "install_worklets=$WORKLETS" | tee -a upgrade-report/upgrade-status.txt
-
-          npx expo install --check \
-            > upgrade-report/04-expo-install-check.log 2>&1
-          INSTALL_CHECK=$?
-          echo "expo_install_check=$INSTALL_CHECK" | tee -a upgrade-report/upgrade-status.txt
-
-          npx expo-doctor@latest \
-            > upgrade-report/05-expo-doctor.log 2>&1
-          DOCTOR=$?
-          echo "expo_doctor=$DOCTOR" | tee -a upgrade-report/upgrade-status.txt
-
-          npm run typecheck \
-            > upgrade-report/06-typecheck.log 2>&1
-          TYPECHECK=$?
-          echo "typecheck=$TYPECHECK" | tee -a upgrade-report/upgrade-status.txt
-
-          npx expo prebuild --platform android --clean --no-install \
-            > upgrade-report/07-prebuild-android.log 2>&1
-          PREBUILD=$?
-          echo "prebuild_android=$PREBUILD" | tee -a upgrade-report/upgrade-status.txt
-
-          git status --short > upgrade-report/git-status.txt
-          git diff --stat > upgrade-report/diff-stat.txt
-          git diff -- package.json package-lock.json app.json tsconfig.json app/ components/ lib/ global.d.ts patches/ > upgrade-report/upgrade.patch
-
-          echo >> upgrade-report/upgrade-status.txt
-          echo "Expo 57 candidate generation completed." | tee -a upgrade-report/upgrade-status.txt
-          exit 0
-
-      - name: Show candidate summary
-        if: always()
-        run: |
-          cat upgrade-report/upgrade-status.txt || true
-          echo '--- git status ---'
-          cat upgrade-report/git-status.txt || true
-          echo '--- diff stat ---'
-          cat upgrade-report/diff-stat.txt || true
-
-      - name: Require all Expo 57 gates
+      - name: Regenerate lockfile from package.json
         run: |
           set -euo pipefail
-          for gate in install_expo_57 expo_install_fix install_worklets expo_install_check expo_doctor typecheck prebuild_android; do
-            grep -qx "${gate}=0" upgrade-report/upgrade-status.txt
-          done
+          rm -rf node_modules package-lock.json
+          npm install --package-lock-only --ignore-scripts
 
-      - name: Promote validated Expo 57 migration to main
+      - name: Validate clean install
         run: |
           set -euo pipefail
+          rm -rf node_modules
+          npm ci --ignore-scripts
+
+      - name: Validate Expo dependency alignment
+        run: npx expo install --check
+
+      - name: Expo Doctor
+        run: npx expo-doctor@latest
+
+      - name: TypeScript check
+        run: npm run typecheck
+
+      - name: Android prebuild validation
+        run: npx expo prebuild --platform android --clean --no-install
+
+      - name: Commit repaired lockfile
+        run: |
+          set -euo pipefail
+          git diff --check -- package-lock.json
+          if git diff --quiet -- package-lock.json; then
+            echo 'package-lock.json already valid; nothing to commit.'
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add \
-            app.json \
-            package.json \
-            package-lock.json \
-            tsconfig.json \
-            global.d.ts \
-            'app/(app)/archive.tsx' \
-            components/domain/ArchiveListItem.tsx \
-            components/domain/MoodCheckin.tsx \
-            components/ui/icons/types.ts \
-            lib/notifications.ts
-          git add -u patches/expo-modules-core+1.12.26.patch
-          git diff --cached --check
-          git commit -m "Upgrade Sobre Native to Expo SDK 57"
+          git add package-lock.json
+          git commit -m "Repair Expo 57 package lockfile"
           git push origin HEAD:main
-
-      - name: Upload Expo 57 report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: expo-57-upgrade-candidate-${{ github.run_number }}
-          path: upgrade-report/
-          if-no-files-found: error
-          retention-days: 14
