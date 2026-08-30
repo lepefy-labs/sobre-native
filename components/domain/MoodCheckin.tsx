@@ -12,7 +12,7 @@ import Animated, {
 import * as Haptics from 'expo-haptics'
 import { Text } from '@/components/ui/Text'
 import { useTheme } from '@/hooks/useTheme'
-import { spacing, typography, fontWeight } from '@/constants/theme'
+import { spacing, typography, fontWeight, radius } from '@/constants/theme'
 import { getT } from '@/lib/i18n'
 import {
   MoodScatteredIcon,
@@ -99,10 +99,21 @@ export function MoodCheckin({ slot: _slot, initialMood, onSave, lang = 'it' }: M
   const displayIndex = selectedIndex ?? DEFAULT_INDEX
 
   return (
-    <View>
-      <Text variant="caption" color={theme.textFaint}>
-        {t.dashboard.mood.question}
-      </Text>
+    <View style={[styles.container, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }]}>
+      <View style={styles.headingRow}>
+        <Text style={[typography.body, styles.question, { color: theme.text }]}>
+          {t.dashboard.mood.question}
+        </Text>
+        {isRecorded && (
+          <Animated.View style={confirmedStyle}>
+            <View style={[styles.confirmedPill, { backgroundColor: theme.surfaceMuted }]}>
+              <Text variant="caption" color={theme.textMuted}>
+                {t.dashboard.mood.confirmed}
+              </Text>
+            </View>
+          </Animated.View>
+        )}
+      </View>
 
       <View style={styles.row}>
         {MOODS.map((mood, index) => (
@@ -112,6 +123,7 @@ export function MoodCheckin({ slot: _slot, initialMood, onSave, lang = 'it' }: M
             isSelected={selectedIndex === index}
             selectedColor={theme.accent}
             unselectedColor={theme.textFaint}
+            selectedBg={theme.surfaceMuted}
             onPress={() => handleTap(index)}
           />
         ))}
@@ -149,14 +161,6 @@ export function MoodCheckin({ slot: _slot, initialMood, onSave, lang = 'it' }: M
           )
         })}
       </View>
-
-      {isRecorded && (
-        <Animated.View style={confirmedStyle}>
-          <Text variant="caption" color={theme.textFaint} style={styles.confirmed}>
-            {t.dashboard.mood.confirmed}
-          </Text>
-        </Animated.View>
-      )}
     </View>
   )
 }
@@ -166,11 +170,12 @@ type MoodOptionProps = {
   isSelected: boolean
   selectedColor: string
   unselectedColor: string
+  selectedBg: string
   onPress: () => void
 }
 
-function MoodOption({ Icon, isSelected, selectedColor, unselectedColor, onPress }: MoodOptionProps) {
-  const scale = useSharedValue(isSelected ? 1.1 : 1)
+function MoodOption({ Icon, isSelected, selectedColor, unselectedColor, selectedBg, onPress }: MoodOptionProps) {
+  const scale = useSharedValue(isSelected ? 1.08 : 1)
   const isFirstRun = useRef(true)
 
   useEffect(() => {
@@ -178,33 +183,65 @@ function MoodOption({ Icon, isSelected, selectedColor, unselectedColor, onPress 
       isFirstRun.current = false
       return
     }
-    scale.value = isSelected ? withSequence(withSpring(1.15), withSpring(1.1)) : withSpring(1)
+    scale.value = isSelected ? withSequence(withSpring(1.14), withSpring(1.08)) : withSpring(1)
   }, [isSelected, scale])
 
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
-  }))
+  const animatedStyle = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }))
 
   return (
-    <Pressable onPress={onPress} hitSlop={HIT_SLOP} style={styles.option}>
-      <Animated.View style={animatedStyle}>
-        <Icon color={isSelected ? selectedColor : unselectedColor} size={28} />
+    <Pressable onPress={onPress} hitSlop={HIT_SLOP} style={styles.option} accessibilityRole="button">
+      <Animated.View
+        style={[
+          styles.iconWrap,
+          isSelected && { backgroundColor: selectedBg },
+          animatedStyle,
+        ]}
+      >
+        <Icon color={isSelected ? selectedColor : unselectedColor} size={27} />
       </Animated.View>
     </Pressable>
   )
 }
 
 const styles = StyleSheet.create({
+  container: {
+    borderWidth: 1,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+  },
+  headingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  question: {
+    fontWeight: fontWeight.medium as any,
+    flex: 1,
+  },
+  confirmedPill: {
+    borderRadius: radius.full,
+    paddingHorizontal: 9,
+    paddingVertical: 5,
+  },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    marginTop: spacing.sm,
+    justifyContent: 'space-between',
+    marginTop: spacing.lg,
   },
   option: {
     alignItems: 'center',
   },
+  iconWrap: {
+    width: 46,
+    height: 46,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   slider: {
-    marginTop: spacing.xs,
+    marginTop: spacing.sm,
+    marginHorizontal: -4,
   },
   labelsRow: {
     flexDirection: 'row',
@@ -213,12 +250,9 @@ const styles = StyleSheet.create({
   label: {
     flex: 1,
     textAlign: 'center',
+    fontSize: 10,
   },
   labelSelected: {
-    fontWeight: fontWeight.medium as any,
-  },
-  confirmed: {
-    textAlign: 'right',
-    marginTop: spacing.sm,
+    fontWeight: fontWeight.semibold as any,
   },
 })
