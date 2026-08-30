@@ -33,9 +33,14 @@ export function addDays(dateString: string, days: number): string {
 }
 
 export function addMonths(dateString: string, months: number): string {
-  const date = toUTCDate(dateString)
-  date.setUTCMonth(date.getUTCMonth() + months)
-  return toDateString(date)
+  const source = toUTCDate(dateString)
+  const sourceDay = source.getUTCDate()
+  const target = new Date(Date.UTC(source.getUTCFullYear(), source.getUTCMonth() + months, 1))
+  const lastDayOfTargetMonth = new Date(
+    Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0)
+  ).getUTCDate()
+  target.setUTCDate(Math.min(sourceDay, lastDayOfTargetMonth))
+  return toDateString(target)
 }
 
 export function getArchiveInitialWindow(today: string): { lowerBound: string; upperBound: string } {
