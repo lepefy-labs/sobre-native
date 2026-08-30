@@ -2,11 +2,12 @@ import { useRef, useState } from 'react'
 import { View, Pressable, StyleSheet, type ViewStyle } from 'react-native'
 import { captureRef } from 'react-native-view-shot'
 import * as Sharing from 'expo-sharing'
+import { LinearGradient } from 'expo-linear-gradient'
 import { Text } from '@/components/ui/Text'
 import { ShareIcon } from '@/components/ui/icons'
 import { ShareableContentCard, SHARE_CARD_WIDTH, SHARE_CARD_HEIGHT } from './ShareableContentCard'
 import { useTheme } from '@/hooks/useTheme'
-import { spacing, radius, fontSize, fontWeight, typography } from '@/constants/theme'
+import { spacing, radius, fontSize, fontWeight, typography, fonts, gradient } from '@/constants/theme'
 import { getT } from '@/lib/i18n'
 import type { ContentLang, ContentType } from '@/types/database'
 
@@ -28,6 +29,7 @@ export function ContentCard({ content, lang = 'it', style, onClose }: ContentCar
   const tags = content.tags.slice(0, 3)
   const shareCardRef = useRef<View>(null)
   const [isSharing, setIsSharing] = useState(false)
+  const colors = gradient[theme.scheme].byContentType[content.type]
 
   async function handleShare() {
     if (isSharing) return
@@ -50,37 +52,58 @@ export function ContentCard({ content, lang = 'it', style, onClose }: ContentCar
   }
 
   return (
-    <View style={[styles.card, { backgroundColor: theme.surface, borderColor: theme.borderSubtle }, style]}>
+    <LinearGradient
+      colors={colors}
+      style={[styles.card, { borderColor: theme.borderSubtle }, style]}
+    >
       <View style={styles.header}>
         <View style={styles.headerLabel}>
           {content.type === 'story' && content.title && (
-            <Text style={[typography.caption, styles.storyTitle, { color: theme.textFaint }]}>
+            <Text style={[typography.caption, styles.storyTitle, { color: theme.textMuted }]}>
               {content.title.toUpperCase()}
             </Text>
           )}
 
           {content.type === 'tip' && (
-            <Text style={[typography.caption, styles.tipBadge, { color: theme.accent }]}>
-              {t.dashboard.content.tipLabel.toUpperCase()}
-            </Text>
+            <View style={[styles.typeBadge, { backgroundColor: theme.surface }]}> 
+              <Text style={[typography.caption, styles.tipBadge, { color: theme.accent }]}>
+                {t.dashboard.content.tipLabel.toUpperCase()}
+              </Text>
+            </View>
           )}
         </View>
 
         <View style={styles.headerActions}>
-          <Pressable onPress={handleShare} disabled={isSharing} hitSlop={12} style={styles.shareButton}>
-            <ShareIcon color={theme.textFaint} size={18} />
+          <Pressable
+            onPress={handleShare}
+            disabled={isSharing}
+            hitSlop={10}
+            style={[styles.iconButton, { backgroundColor: theme.surface }]}
+            accessibilityRole="button"
+          >
+            <ShareIcon color={theme.textMuted} size={17} />
           </Pressable>
 
           {onClose && (
-            <Pressable onPress={onClose} hitSlop={12} style={styles.closeButton}>
-              <Text style={[typography.body, { color: theme.textFaint }]}>✕</Text>
+            <Pressable
+              onPress={onClose}
+              hitSlop={10}
+              style={[styles.iconButton, { backgroundColor: theme.surface }]}
+              accessibilityRole="button"
+            >
+              <Text style={[styles.closeText, { color: theme.textMuted }]}>✕</Text>
             </Pressable>
           )}
         </View>
       </View>
 
       <Text
-        style={[typography.body, { color: theme.textSecondary }, content.type === 'thought' && styles.thoughtBody]}
+        style={[
+          typography.body,
+          styles.body,
+          { color: theme.textSecondary },
+          content.type === 'thought' && [styles.thoughtBody, { fontFamily: fonts.serif.regular, color: theme.text }],
+        ]}
       >
         {content.body}
       </Text>
@@ -88,8 +111,8 @@ export function ContentCard({ content, lang = 'it', style, onClose }: ContentCar
       {tags.length > 0 && (
         <View style={styles.tagsRow}>
           {tags.map((tag) => (
-            <View key={tag} style={[styles.tagPill, { backgroundColor: theme.surfaceMuted }]}>
-              <Text style={[typography.caption, { color: theme.textMuted }]}>{tag}</Text>
+            <View key={tag} style={[styles.tagPill, { backgroundColor: theme.surface }]}> 
+              <Text style={[typography.caption, { color: theme.textMuted }]}>#{tag}</Text>
             </View>
           ))}
         </View>
@@ -98,7 +121,7 @@ export function ContentCard({ content, lang = 'it', style, onClose }: ContentCar
       <View style={styles.offscreen} pointerEvents="none">
         <ShareableContentCard ref={shareCardRef} content={content} lang={lang} />
       </View>
-    </View>
+    </LinearGradient>
   )
 }
 
@@ -106,18 +129,18 @@ const styles = StyleSheet.create({
   card: {
     padding: spacing.lg,
     borderWidth: 1,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.06,
+    shadowRadius: 18,
+    elevation: 4,
   },
   header: {
     flexDirection: 'row',
     alignItems: 'flex-start',
     justifyContent: 'space-between',
-    marginBottom: spacing.sm,
+    marginBottom: spacing.lg,
   },
   headerLabel: {
     flex: 1,
@@ -128,38 +151,52 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: spacing.sm,
   },
-  shareButton: {
-    padding: 2,
+  iconButton: {
+    width: 36,
+    height: 36,
+    borderRadius: radius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  closeButton: {
-    padding: 2,
+  closeText: {
+    fontSize: 15,
+    lineHeight: 18,
+  },
+  typeBadge: {
+    alignSelf: 'flex-start',
+    borderRadius: radius.full,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
   },
   storyTitle: {
     fontWeight: fontWeight.medium as any,
-    textTransform: 'uppercase',
-    letterSpacing: 1.5,
+    letterSpacing: 1.4,
   },
   tipBadge: {
     fontWeight: fontWeight.semibold as any,
-    textTransform: 'uppercase',
     letterSpacing: 1,
   },
+  body: {
+    fontSize: fontSize.lg,
+    lineHeight: 28,
+  },
   thoughtBody: {
-    fontSize: fontSize.xl,
-    fontWeight: fontWeight.light as any,
-    textAlign: 'center',
-    paddingVertical: spacing.xl,
+    fontSize: 27,
+    lineHeight: 38,
+    fontWeight: fontWeight.normal as any,
+    textAlign: 'left',
+    paddingVertical: spacing.sm,
   },
   tagsRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: spacing.md,
+    marginTop: spacing.xl,
     gap: spacing.xs,
   },
   tagPill: {
     borderRadius: radius.full,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 4,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
   },
   offscreen: {
     position: 'absolute',
